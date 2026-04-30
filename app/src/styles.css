@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme tokens ──────────────────────────────────────── */
+
+:root {
+  --app-height: 100dvh;
+  --app-max-width: 400px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  /* Light theme — duplicate this block with [data-theme="dark"] to add a dark mode */
+  --bg: linear-gradient(170deg, #f8f6f0 0%, #eee8d5 100%);
+  --panel: rgba(255, 255, 255, 0.92);
+  --text: #1a1a2e;
+  --text-muted: #6b7280;
+  --border: rgba(0, 0, 0, 0.1);
+  --accent: #4f46e5;
+  --ink-strong: var(--text);
+  --ink-soft: var(--text-muted);
+  --ink-inverse: #ffffff;
+  --surface-strong: var(--panel);
+}
+
+/* ── Base reset ────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: var(--app-height, 100vh);
+  min-height: var(--app-height, 100vh);
+  position: fixed;
+  width: 100%;
+  margin: 0;
+}
+
+/* ── App shell ─────────────────────────────────────────── */
+
+.app-screen {
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: var(--app-height);
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── Semantic text ─────────────────────────────────────── */
+
+.ink-strong { color: var(--ink-strong); }
+.ink-soft { color: var(--ink-soft); }
+.ink-inverse { color: var(--ink-inverse); }
+
+/* ── Button hierarchy ──────────────────────────────────── */
+
+.ui-cta {
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent), black 20%));
+  color: white;
+  border: 1px solid color-mix(in srgb, var(--accent), transparent 50%);
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.ui-cta:active { filter: brightness(0.9); }
+
+.ui-button {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.ui-button:active { filter: brightness(0.95); }
+
+.ui-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Panel ─────────────────────────────────────────────── */
+
+.ui-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}

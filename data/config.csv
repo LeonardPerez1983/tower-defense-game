@@ -1,0 +1,7 @@
+key,value
+app_name,Battle Arena
+energy_regen_rate,0.5
+max_energy,10
+hand_size,4
+max_units_per_team,8
+tower_health,1000
