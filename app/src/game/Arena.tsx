@@ -1,11 +1,15 @@
 /**
  * Arena - 3D Battlefield Scene
  *
- * Sets up the 3D environment: lighting, camera, ground plane, and demo shapes.
+ * Sets up the 3D environment: lighting, camera, ground plane, and units.
  * Camera positioned for top-down Clash Royale-style view.
  */
 
+import { useGameState } from "../engine/GameState";
+import Unit from "./Unit";
+
 export default function Arena() {
+  const { state } = useGameState();
   return (
     <>
       {/* Sky/Background color */}
@@ -49,6 +53,23 @@ export default function Arena() {
         <boxGeometry args={[0.5, 0.5, 0.5]} />
         <meshStandardMaterial color="#ffaa00" />
       </mesh>
+
+      {/* Player Tower */}
+      <mesh position={[0, 1, 10]}>
+        <cylinderGeometry args={[0.8, 0.8, 2, 8]} />
+        <meshStandardMaterial color={state.playerTowerHP > 0 ? "#4ade80" : "#6b7280"} />
+      </mesh>
+
+      {/* CPU Tower */}
+      <mesh position={[0, 1, -10]}>
+        <cylinderGeometry args={[0.8, 0.8, 2, 8]} />
+        <meshStandardMaterial color={state.cpuTowerHP > 0 ? "#f87171" : "#6b7280"} />
+      </mesh>
+
+      {/* Render all units */}
+      {state.units.map((unit) => (
+        <Unit key={unit.id} unit={unit} />
+      ))}
     </>
   );
 }

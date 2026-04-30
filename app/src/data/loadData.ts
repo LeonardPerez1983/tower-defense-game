@@ -44,3 +44,51 @@ export async function loadConfig(): Promise<Map<string, string>> {
   const rows = await loadCsv("config.csv", ["key", "value"]);
   return new Map(rows.map((r) => [r.key, r.value]));
 }
+
+// Card data types
+export interface Card {
+  id: string;
+  name: string;
+  cost: number;
+  effect_type: "spawn_unit" | "damage" | "heal" | "stun";
+  effect_value: number;
+  unit_id: string;
+  description: string;
+}
+
+export async function loadCards(): Promise<Card[]> {
+  const rows = await loadCsv("cards.csv", ["id", "name", "cost", "effect_type", "description"]);
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    cost: parseFloat(r.cost),
+    effect_type: r.effect_type as Card["effect_type"],
+    effect_value: parseFloat(r.effect_value) || 0,
+    unit_id: r.unit_id || "",
+    description: r.description,
+  }));
+}
+
+// Unit stats types
+export interface UnitStats {
+  id: string;
+  health: number;
+  speed: number;
+  damage: number;
+  attack_range: number;
+  shape: "box" | "sphere" | "cylinder" | "cone";
+  color: string;
+}
+
+export async function loadUnits(): Promise<UnitStats[]> {
+  const rows = await loadCsv("units.csv", ["id", "health", "speed", "damage", "attack_range", "shape", "color"]);
+  return rows.map((r) => ({
+    id: r.id,
+    health: parseFloat(r.health),
+    speed: parseFloat(r.speed),
+    damage: parseFloat(r.damage),
+    attack_range: parseFloat(r.attack_range),
+    shape: r.shape as UnitStats["shape"],
+    color: r.color,
+  }));
+}
