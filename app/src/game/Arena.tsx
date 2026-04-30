@@ -22,50 +22,50 @@ export default function Arena() {
 
       {/* Water base (surrounds entire arena) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-        <planeGeometry args={[25, 35]} />
+        <planeGeometry args={[14, 35]} />
         <meshStandardMaterial color="#4a9eff" />
       </mesh>
 
       {/* Main battlefield ground - Player side */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 7]}>
-        <planeGeometry args={[8, 8]} />
+        <planeGeometry args={[10, 8]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
-      {/* Bridge/Chokepoint - Middle narrows here */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[4, 6]} />
+      {/* Left bridge (at 1/3 horizontal position) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2.5, 0, 0]}>
+        <planeGeometry args={[2.5, 8]} />
+        <meshStandardMaterial color="#c8a882" />
+      </mesh>
+
+      {/* Right bridge (at 2/3 horizontal position) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0, 0]}>
+        <planeGeometry args={[2.5, 8]} />
         <meshStandardMaterial color="#c8a882" />
       </mesh>
 
       {/* Main battlefield ground - CPU side */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -7]}>
-        <planeGeometry args={[8, 8]} />
+        <planeGeometry args={[10, 8]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
       {/* Arena walls - Left side */}
-      <mesh position={[-5, 0.5, 0]}>
+      <mesh position={[-6, 0.5, 0]}>
         <boxGeometry args={[0.5, 1, 30]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
       {/* Arena walls - Right side */}
-      <mesh position={[5, 0.5, 0]}>
+      <mesh position={[6, 0.5, 0]}>
         <boxGeometry args={[0.5, 1, 30]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
-      {/* Chokepoint markers - Left */}
-      <mesh position={[-2.2, 0.3, 0]}>
-        <boxGeometry args={[0.3, 0.6, 0.3]} />
-        <meshStandardMaterial color="#6b5644" />
-      </mesh>
-
-      {/* Chokepoint markers - Right */}
-      <mesh position={[2.2, 0.3, 0]}>
-        <boxGeometry args={[0.3, 0.6, 0.3]} />
-        <meshStandardMaterial color="#6b5644" />
+      {/* Center water divider between bridges */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[2, 0.1, 8]} />
+        <meshStandardMaterial color="#2b7fd9" />
       </mesh>
 
       {/* Player Tower - Center back */}

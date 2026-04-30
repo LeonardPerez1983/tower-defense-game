@@ -15,10 +15,10 @@ export default function HUD() {
   const cpuTowerPercent = (state.cpuTowerHP / state.towerMaxHP) * 100;
 
   return (
-    <div className="absolute inset-x-0 top-0 p-4 pointer-events-none z-40">
-      {/* CPU Stats (Top) */}
-      <div className="mb-4">
-        <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md max-w-xs mx-auto">
+    <div className="absolute inset-0 pointer-events-none z-40">
+      {/* CPU Stats (Top-Left) */}
+      <div className="absolute top-4 left-4">
+        <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md w-64">
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="font-semibold text-gray-700">CPU Tower</span>
             <span className="text-gray-600">{Math.round(state.cpuTowerHP)} HP</span>
@@ -43,12 +43,9 @@ export default function HUD() {
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Player Stats (Bottom) */}
-      <div className="absolute bottom-32 left-0 right-0 px-4">
-        <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md max-w-xs mx-auto">
+      {/* Player Stats (Top-Right) */}
+      <div className="absolute top-4 right-4">
+        <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md w-64">
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="font-semibold text-gray-700">Your Tower</span>
             <span className="text-gray-600">{Math.round(state.playerTowerHP)} HP</span>
