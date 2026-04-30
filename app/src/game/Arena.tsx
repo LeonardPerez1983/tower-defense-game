@@ -20,51 +20,51 @@ export default function Arena() {
       <ambientLight intensity={0.6} />
       <directionalLight position={[10, 15, 5]} intensity={0.9} castShadow />
 
-      {/* Water base (surrounds entire arena) */}
+      {/* Water base (only in middle river area) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-        <planeGeometry args={[14, 35]} />
+        <planeGeometry args={[14, 26]} />
         <meshStandardMaterial color="#4a9eff" />
       </mesh>
 
-      {/* Main battlefield ground - Player side */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 7]}>
-        <planeGeometry args={[10, 8]} />
+      {/* Main battlefield ground - Player side (extends to edge) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 8.5]}>
+        <planeGeometry args={[10, 11]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
-      {/* Left bridge (at 1/3 horizontal position) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2.5, 0, 0]}>
-        <planeGeometry args={[2.5, 8]} />
+      {/* Left bridge (at 1/3 horizontal position) - overlaps grass on both ends */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2.5, 0.01, 0]}>
+        <planeGeometry args={[2.5, 10]} />
         <meshStandardMaterial color="#c8a882" />
       </mesh>
 
-      {/* Right bridge (at 2/3 horizontal position) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0, 0]}>
-        <planeGeometry args={[2.5, 8]} />
+      {/* Right bridge (at 2/3 horizontal position) - overlaps grass on both ends */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0.01, 0]}>
+        <planeGeometry args={[2.5, 10]} />
         <meshStandardMaterial color="#c8a882" />
       </mesh>
 
-      {/* Main battlefield ground - CPU side */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -7]}>
-        <planeGeometry args={[10, 8]} />
+      {/* Main battlefield ground - CPU side (extends to edge) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -8.5]}>
+        <planeGeometry args={[10, 11]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
       {/* Arena walls - Left side */}
       <mesh position={[-6, 0.5, 0]}>
-        <boxGeometry args={[0.5, 1, 30]} />
+        <boxGeometry args={[0.5, 1, 26]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
       {/* Arena walls - Right side */}
       <mesh position={[6, 0.5, 0]}>
-        <boxGeometry args={[0.5, 1, 30]} />
+        <boxGeometry args={[0.5, 1, 26]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
-      {/* Center water divider between bridges */}
-      <mesh position={[0, 0.1, 0]}>
-        <boxGeometry args={[2, 0.1, 8]} />
+      {/* Center water river between bridges (narrower) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[1.5, 10]} />
         <meshStandardMaterial color="#2b7fd9" />
       </mesh>
 
