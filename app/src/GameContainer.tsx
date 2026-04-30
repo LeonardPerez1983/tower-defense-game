@@ -27,10 +27,11 @@ function GameContent() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* LAYER 1: 3D Background (WebGL Canvas) */}
+      {/* LAYER 1: 3D Background (WebGL Canvas) - reserve bottom 140px for cards */}
       <Canvas
-        camera={{ position: [0, 12, 10], fov: 45 }}
-        className="absolute inset-0"
+        camera={{ position: [0, 14, 8], fov: 35 }}
+        className="absolute inset-x-0 top-0"
+        style={{ height: 'calc(100vh - 140px)' }}
         shadows
       >
         <Arena />
