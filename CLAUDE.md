@@ -8,6 +8,7 @@ Read these baseline docs at session start:
 - @project_context/WORKING_MODEL.md
 - @project_context/UI_STANDARDS.md
 - @project_context/3D_STANDARDS.md
+- @project_context/STARCRAFT_REFERENCE.md
 
 Read specialist docs only when working on those areas (add as the project grows):
 
