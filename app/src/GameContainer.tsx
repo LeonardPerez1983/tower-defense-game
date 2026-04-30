@@ -29,7 +29,7 @@ function GameContent() {
     <div className="relative w-full h-screen overflow-hidden">
       {/* LAYER 1: 3D Background (WebGL Canvas) */}
       <Canvas
-        camera={{ position: [0, 10, 15], fov: 50 }}
+        camera={{ position: [0, 12, 10], fov: 45 }}
         className="absolute inset-0"
         shadows
       >
