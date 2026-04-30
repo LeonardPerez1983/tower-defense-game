@@ -26,7 +26,7 @@ export default function CardHand() {
   if (state.phase !== "playing") return null;
 
   return (
-    <div className="absolute bottom-4 left-0 right-0 px-4 pointer-events-none">
+    <div className="absolute bottom-4 left-0 right-0 px-4 pointer-events-none z-50">
       <div className="flex gap-2 justify-center max-w-md mx-auto pointer-events-auto">
         {state.playerHand.map((card) => {
           const canAfford = state.playerEnergy >= card.cost;

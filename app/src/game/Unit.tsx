@@ -46,7 +46,7 @@ export default function Unit({ unit }: Props) {
       </mesh>
 
       {/* Health bar above unit */}
-      <Html position={[0, 1.5, 0]} center style={{ pointerEvents: "none" }}>
+      <Html position={[0, 1.5, 0]} center style={{ pointerEvents: "none", zIndex: 10 }}>
         <div className="bg-black/50 backdrop-blur-sm rounded px-2 py-1 text-xs min-w-16">
           <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
             <div

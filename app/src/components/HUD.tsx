@@ -15,7 +15,7 @@ export default function HUD() {
   const cpuTowerPercent = (state.cpuTowerHP / state.towerMaxHP) * 100;
 
   return (
-    <div className="absolute inset-x-0 top-0 p-4 pointer-events-none">
+    <div className="absolute inset-x-0 top-0 p-4 pointer-events-none z-40">
       {/* CPU Stats (Top) */}
       <div className="mb-4">
         <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md max-w-xs mx-auto">
