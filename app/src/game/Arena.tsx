@@ -9,6 +9,11 @@ import Unit from "./Unit";
 import Building from "./Building";
 import { useUnitMovement } from "../hooks/useUnitMovement";
 import { useUnitCombat } from "../hooks/useUnitCombat";
+import { useProductionQueue } from "../hooks/useProductionQueue";
+import { useShieldRegeneration } from "../hooks/useShieldRegeneration";
+import { useCreepSystem } from "../hooks/useCreepSystem";
+import { useLarvaProduction } from "../hooks/useLarvaProduction";
+import { useCreepRegeneration } from "../hooks/useCreepRegeneration";
 import { useBuildingPlacement } from "../hooks/useBuildingPlacement";
 import BuildingPlacementController from "./BuildingPlacementController";
 
@@ -24,6 +29,21 @@ export default function Arena({ buildingPlacement }: Props) {
 
   // Handle unit combat
   useUnitCombat();
+
+  // Process production queues
+  useProductionQueue();
+
+  // Regenerate Protoss shields
+  useShieldRegeneration();
+
+  // Manage Zerg creep spreading
+  useCreepSystem();
+
+  // Manage Zerg larva production
+  useLarvaProduction();
+
+  // Regenerate Zerg units on creep
+  useCreepRegeneration();
 
   return (
     <>

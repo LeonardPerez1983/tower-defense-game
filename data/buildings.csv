@@ -1,3 +1,11 @@
-id,name,cost,health,shape,color,width,height,depth,description
-command_center,Command Center,400,500,box,#3b82f6,1.875,1.5,1.875,Base building - produces workers
-barracks,Barracks,5,300,box,#ef4444,1.5,1.125,1.5,Infantry production - unlocks Marines
+id,name,cost,health,shape,color,width,height,depth,description,max_shields,shield_regen_delay,shield_regen_rate,attack_damage,attack_range,attack_cooldown
+command_center,Command Center,400,1000,box,#3b82f6,1.875,1.5,1.875,Base building - produces workers,0,0,0,0,0,0
+barracks,Barracks,5,300,box,#ef4444,1.5,1.125,1.5,Infantry production - unlocks Marines,0,0,0,0,0,0
+protoss_nexus,Nexus,10,600,sphere,#FFD700,2.5,2.0,2.5,Protoss base - produces Probes,400,3.0,2.0,0,0,0
+protoss_gateway,Gateway,5,300,box,#4169E1,1.8,1.8,1.8,Unit production - unlocks Zealots and Dragoons,200,3.0,2.0,0,0,0
+protoss_cannon,Photon Cannon,5,60,cylinder,#00CED1,1.0,2.0,1.0,Static defense - attacks enemies automatically,60,3.0,2.0,20,7.0,1.5
+zerg_hatchery,Hatchery,10,1000,cone,#9333EA,2.0,1.5,2.0,Zerg base - produces Drones and spawns larva,0,0,0,0,0,0
+creep_colony,Creep Colony,2,200,cylinder,#8B5CF6,0.8,1.0,0.8,Expands creep - no attack (upgradable),0,0,0,0,0,0
+spawning_pool,Spawning Pool,5,500,cylinder,#A855F7,1.5,1.0,1.5,Unlocks Zerglings,0,0,0,0,0,0
+hydralisk_den,Hydralisk Den,5,500,box,#C084FC,1.6,1.2,1.6,Unlocks Hydralisks,0,0,0,0,0,0
+sunken_colony,Sunken Colony,4,300,cylinder,#7C3AED,1.0,1.5,1.0,Static defense - attacks ground units,0,0,0,25,8.0,2.0

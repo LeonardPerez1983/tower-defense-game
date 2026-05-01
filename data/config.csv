@@ -1,9 +1,9 @@
 key,value
 app_name,Battle Arena
-energy_regen_rate,0.5
+energy_regen_rate,0.33
 max_energy,10
 hand_size,4
 max_units_per_team,8
 tower_health,1000
 max_workers,5
-energy_per_worker,0.2
+energy_per_worker,0.13

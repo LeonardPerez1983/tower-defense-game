@@ -36,6 +36,10 @@ export default function Unit({ unit }: Props) {
   };
 
   const healthPercent = (unit.health / stats.health) * 100;
+  const shieldPercent = stats.max_shields > 0
+    ? (unit.shields / stats.max_shields) * 100
+    : 0;
+  const hasShields = stats.max_shields > 0;
 
   // Get unit height based on shape (75% scale)
   const getUnitHeight = () => {
@@ -63,9 +67,17 @@ export default function Unit({ unit }: Props) {
         <meshStandardMaterial color={stats.color} />
       </mesh>
 
-      {/* Health bar above unit */}
+      {/* Health/Shield bars above unit */}
       <Html position={[0, unitHeight + 0.5, 0]} center style={{ pointerEvents: "none", zIndex: 10 }}>
         <div className="bg-black/50 backdrop-blur-sm rounded px-2 py-1 text-xs min-w-16">
+          {hasShields && (
+            <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-0.5">
+              <div
+                className="h-full transition-all bg-blue-400"
+                style={{ width: `${shieldPercent}%` }}
+              />
+            </div>
+          )}
           <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all ${

@@ -26,6 +26,16 @@ export default function HUD() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-40">
+      {/* Debug Button */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-auto">
+        <a
+          href="#debug"
+          className="text-xs bg-gray-800/80 hover:bg-gray-700/80 text-white px-3 py-1 rounded backdrop-blur-sm transition-colors"
+        >
+          🎨 Model Viewer
+        </a>
+      </div>
+
       {/* CPU Stats (Top-Left) */}
       <div className="absolute top-4 left-4">
         <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md w-64">

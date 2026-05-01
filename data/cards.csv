@@ -1,4 +1,16 @@
-id,name,cost,effect_type,effect_value,unit_id,building_id,card_type,faction,description
-worker,SCV,2,add_worker,,,,spell,terran,Hire worker - generates +0.2 energy/sec
-barracks,Barracks,5,spawn_building,,,,building,terran,Infantry production - unlocks Marines
-marine,Marine,1,spawn_unit,,marine_unit,,unit,terran,Basic infantry unit
+id,name,cost,effect_type,effect_value,unit_id,building_id,card_type,faction,description,max_copies,is_permanent_removal,discard_cost,build_time
+worker,SCV,2,add_worker,,,,spell,terran,Hire worker - generates +0.2 energy/sec,5,true,0,2
+barracks,Barracks,5,spawn_building,,,,building,terran,Infantry production - unlocks Marines,1,false,2,10
+marine,Marine,2,spawn_unit,,marine_unit,,unit,terran,Basic infantry unit,1,false,1,3
+protoss_probe,Probe,2,add_worker,,,,spell,protoss,Hire worker - generates +0.2 energy/sec,5,true,0,2
+protoss_gateway,Gateway,5,spawn_building,,,protoss_gateway,building,protoss,Unit production - unlocks Zealots and Dragoons,1,false,2,10
+protoss_zealot,Zealot,5,spawn_unit,,zealot_unit,,unit,protoss,Powerful melee warrior with shields,1,false,1,7
+protoss_dragoon,Dragoon,4,spawn_unit,,dragoon_unit,,unit,protoss,Ranged attacker with shields,1,false,1,5
+protoss_cannon,Photon Cannon,5,spawn_building,,,protoss_cannon,building,protoss,Static defense - attacks enemies automatically,1,false,2,8
+zerg_drone,Drone,2,add_worker,,,,spell,zerg,Hire worker - generates +0.2 energy/sec,5,true,0,2
+creep_colony,Creep Colony,2,spawn_building,,,creep_colony,building,zerg,Expands creep - can upgrade to Sunken Colony,1,false,2,6
+spawning_pool,Spawning Pool,5,spawn_building,,,spawning_pool,building,zerg,Unlocks Zerglings - requires creep,1,true,2,10
+hydralisk_den,Hydralisk Den,5,spawn_building,,,hydralisk_den,building,zerg,Unlocks Hydralisks - requires creep,1,true,2,12
+sunken_colony,Sunken Colony,2,upgrade_building,creep_colony,,sunken_colony,upgrade,zerg,Upgrade Creep Colony to Sunken Colony - ground defense,1,true,0,5
+zergling,Zergling,1,spawn_unit,,zergling_unit,,unit,zerg,Fast melee attacker - morphs from larva,1,false,1,4
+hydralisk,Hydralisk,3,spawn_unit,,hydralisk_unit,,unit,zerg,Ranged attacker - morphs from larva,1,false,1,6

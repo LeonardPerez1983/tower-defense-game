@@ -13,6 +13,8 @@ import Arena from "./game/Arena";
 import HUD from "./components/HUD";
 import CardHand from "./components/CardHand";
 import SplashScreen from "./components/SplashScreen";
+import { ProductionQueueDisplay } from "./components/ProductionQueueDisplay";
+import LarvaDisplay from "./components/LarvaDisplay";
 import { useEnergyTimer } from "./hooks/useEnergyTimer";
 import { useCPUAI } from "./hooks/useCPUAI";
 import { useTechTreeUnlocking } from "./hooks/useTechTreeUnlocking";
@@ -22,16 +24,17 @@ import { useBuildingPlacement } from "./hooks/useBuildingPlacement";
 // Inner component that uses game state hooks
 interface GameContentProps {
   allCards: Card[];
+  allBuildings: Building[];
   techTree: TechTreeEntry[];
 }
 
-function GameContent({ allCards, techTree }: GameContentProps) {
+function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
   const { state } = useGameState();
 
   // Start energy regeneration and CPU AI
   useEnergyTimer();
-  useCPUAI();
-  useTechTreeUnlocking({ allCards, techTree });
+  useCPUAI({ allBuildings });
+  useTechTreeUnlocking({ allCards, techTree }); // Tech tree unlocks (Nexus → Gateway, Gateway → Zealot, etc.)
 
   // Building placement system
   const buildingPlacement = useBuildingPlacement();
@@ -54,7 +57,9 @@ function GameContent({ allCards, techTree }: GameContentProps) {
         {state.phase === "playing" && (
           <>
             <HUD />
-            <CardHand buildingPlacement={buildingPlacement} />
+            <ProductionQueueDisplay />
+            <LarvaDisplay />
+            <CardHand buildingPlacement={buildingPlacement} techTree={techTree} />
           </>
         )}
         {state.phase === "gameover" && (
@@ -114,7 +119,7 @@ export default function GameContainer() {
 
   return (
     <GameStateProvider config={config} allCards={cards} allUnits={units} allBuildings={buildings} techTree={techTree}>
-      <GameContent allCards={cards} techTree={techTree} />
+      <GameContent allCards={cards} allBuildings={buildings} techTree={techTree} />
     </GameStateProvider>
   );
 }

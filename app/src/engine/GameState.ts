@@ -11,6 +11,14 @@ import { Card, UnitStats, Building as BuildingStats } from "../data/loadData";
 // Game phases
 export type GamePhase = "splash" | "playing" | "gameover";
 
+// Production queue entry
+export interface ProductionQueueEntry {
+  cardId: string;
+  buildingId: string;  // Which building is producing this
+  startTime: number;   // When production started (performance.now())
+  buildTime: number;   // How long it takes (from CSV)
+}
+
 // Unit instance (spawned from card)
 export interface Unit {
   id: string; // unique instance id
@@ -18,6 +26,8 @@ export interface Unit {
   team: "player" | "cpu";
   position: [number, number, number];
   health: number;
+  shields: number; // current shield points
+  lastShieldDamageTime?: number; // timestamp of last shield damage (for regen delay)
   stats: UnitStats;
   waypoints?: [number, number, number][]; // Pathfinding waypoints
   currentWaypointIndex?: number; // Which waypoint we're heading to
@@ -30,12 +40,19 @@ export interface PlacedBuilding {
   team: "player" | "cpu";
   position: [number, number, number];
   health: number;
+  shields: number; // current shield points
+  lastShieldDamageTime?: number; // timestamp of last shield damage (for regen delay)
   stats: BuildingStats;
+  constructionStartTime?: number; // When construction started (undefined = complete)
+  constructionDuration?: number; // How long construction takes (undefined = instant/complete)
+  linkedUpgradeCardId?: string; // For Creep Colony: the upgrade card (sunken_colony) linked to this building
 }
 
 // Game state interface
 export interface GameState {
   phase: GamePhase;
+  playerFaction: "terran" | "protoss" | "zerg";
+  cpuFaction: "terran" | "protoss" | "zerg";
   playerEnergy: number;
   cpuEnergy: number;
   playerHand: Card[];
@@ -56,11 +73,19 @@ export interface GameState {
   towerMaxHP: number;
   maxWorkers: number;
   energyPerWorker: number;
+  // Production queue system
+  playerProductionQueue: ProductionQueueEntry[];
+  cpuProductionQueue: ProductionQueueEntry[];
+  // Zerg creep system
+  creepTiles: Set<string>; // Set of "x,z" coordinates with creep
+  // Zerg larva system
+  larvaCount: Map<string, number>; // Map of Hatchery building ID -> larva count (max 3 per Hatchery)
 }
 
 // Actions to modify state
 export interface GameActions {
   setPhase: (phase: GamePhase) => void;
+  setFactions: (playerFaction: "terran" | "protoss" | "zerg", cpuFaction: "terran" | "protoss" | "zerg") => void;
   addEnergy: (team: "player" | "cpu", amount: number) => void;
   spendEnergy: (team: "player" | "cpu", amount: number) => boolean;
   playCard: (team: "player" | "cpu", cardId: string, position: [number, number, number]) => void;
@@ -77,8 +102,21 @@ export interface GameActions {
   setPlayerHand: (cards: Card[]) => void;
   setCpuHand: (cards: Card[]) => void;
   initializeDeck: (team: "player" | "cpu", allCards: Card[]) => void;
-  drawCard: (team: "player" | "cpu") => void;
   addCardsToDeck: (team: "player" | "cpu", cards: Card[]) => void;
+  // Production queue actions
+  queueProduction: (team: "player" | "cpu", card: Card, buildingId: string) => void;
+  completeProduction: (team: "player" | "cpu", queueEntry: ProductionQueueEntry) => void;
+  discardCard: (team: "player" | "cpu", cardId: string) => void;
+  // Shield actions
+  updateUnitShields: (unitId: string, shields: number) => void;
+  updateBuildingShields: (buildingId: string, shields: number) => void;
+  // Creep actions
+  updateCreep: (creepTiles: Set<string>) => void;
+  // Larva actions
+  addLarva: (buildingId: string) => void;
+  consumeLarva: (buildingId: string) => boolean;
+  // Building upgrade actions
+  upgradeBuilding: (buildingId: string, newBuildingType: string) => void;
 }
 
 // Context
@@ -108,6 +146,8 @@ export function createInitialState(
 
   return {
     phase: "splash",
+    playerFaction: "terran", // Default, will be set by splash screen
+    cpuFaction: "terran", // Default, will be set by splash screen
     playerEnergy: maxEnergy,
     cpuEnergy: maxEnergy,
     playerHand: [],
@@ -127,5 +167,9 @@ export function createInitialState(
     towerMaxHP: towerHP,
     maxWorkers,
     energyPerWorker,
+    playerProductionQueue: [],
+    cpuProductionQueue: [],
+    creepTiles: new Set<string>(),
+    larvaCount: new Map<string, number>(),
   };
 }

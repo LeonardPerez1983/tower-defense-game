@@ -1,3 +1,9 @@
-id,health,speed,damage,attack_range,shape,color,faction
-worker_unit,60,2.0,5,1.0,box,#3b82f6,terran
-marine_unit,45,2.5,6,4.0,box,#ff6b6b,terran
+id,health,speed,damage,attack_range,shape,color,faction,max_shields,shield_regen_delay,shield_regen_rate
+worker_unit,60,2.0,5,1.0,box,#3b82f6,terran,0,0,0
+marine_unit,45,2.5,6,4.0,box,#ff6b6b,terran,0,0,0
+probe_unit,20,2.0,3,1.0,box,#FFD700,protoss,20,3.0,2.0
+zealot_unit,60,2.8,12,1.0,cylinder,#4169E1,protoss,60,3.0,2.0
+dragoon_unit,50,2.0,15,6.0,box,#1E90FF,protoss,50,3.0,2.0
+drone_unit,40,2.0,3,1.0,box,#9333EA,zerg,0,0,0
+zergling_unit,35,3.5,5,1.0,cylinder,#A855F7,zerg,0,0,0
+hydralisk_unit,80,2.0,10,5.0,cone,#C084FC,zerg,0,0,0

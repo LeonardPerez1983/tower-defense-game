@@ -8,7 +8,7 @@ import { useThree } from "@react-three/fiber";
 import { useEffect } from "react";
 import { Raycaster, Vector2, Plane, Vector3 } from "three";
 import { useBuildingPlacement } from "../hooks/useBuildingPlacement";
-import { useGameState } from "../engine/GameState";
+import { useGameState, PlacedBuilding } from "../engine/GameState";
 import GhostBuilding from "./GhostBuilding";
 import { loadBuildings } from "../data/loadData";
 import { useState } from "react";
@@ -20,7 +20,7 @@ interface Props {
 
 export default function BuildingPlacementController({ placementState }: Props) {
   const { camera, gl } = useThree();
-  const { actions } = useGameState();
+  const { state: gameState, actions } = useGameState();
   const [buildingStats, setBuildingStats] = useState<Building | null>(null);
 
   const { placementState: state, updatePosition, confirmPlacement, cancelPlacement } = placementState;
@@ -79,8 +79,26 @@ export default function BuildingPlacementController({ placementState }: Props) {
 
       // Left-click or tap confirms
       const position = confirmPlacement();
-      if (position && state.card) {
-        actions.playCard("player", state.card.id, position);
+      if (position && state.card && buildingStats) {
+        // For buildings, place immediately as "under construction"
+        const buildingId = `player-${Date.now()}-${Math.random()}`;
+
+        const newBuilding: PlacedBuilding = {
+          id: buildingId,
+          buildingType: state.card.id,
+          team: "player",
+          position,
+          health: buildingStats.health,
+          shields: buildingStats.max_shields,
+          stats: buildingStats,
+          constructionStartTime: performance.now(),
+          constructionDuration: state.card.build_time * 1000, // Convert to ms
+        };
+
+        actions.placeBuilding(newBuilding);
+
+        // Queue construction (use building's own ID as producer since it's constructing itself)
+        actions.queueProduction("player", state.card, buildingId);
       }
     };
 

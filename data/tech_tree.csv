@@ -1,4 +1,12 @@
 card_id,required_building,faction
-worker,command_center,terran
 barracks,command_center,terran
 marine,barracks,terran
+protoss_gateway,protoss_nexus,protoss
+protoss_cannon,protoss_nexus,protoss
+protoss_zealot,protoss_gateway,protoss
+protoss_dragoon,protoss_gateway,protoss
+creep_colony,zerg_hatchery,zerg
+spawning_pool,zerg_hatchery,zerg
+hydralisk_den,zerg_hatchery,zerg
+zergling,spawning_pool,zerg
+hydralisk,hydralisk_den,zerg

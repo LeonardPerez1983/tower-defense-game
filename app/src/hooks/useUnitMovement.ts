@@ -7,6 +7,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useGameState } from "../engine/GameState";
+import { hasCreepAt } from "./useCreepSystem";
 
 // Arena layout constants
 const RIVER_Z_MIN = -1;
@@ -62,9 +63,19 @@ export function useUnitMovement() {
   useFrame((_, delta) => {
     if (state.phase !== "playing") return;
 
-    // Find enemy bases
-    const playerBase = state.buildings.find(b => b.team === "player" && b.buildingType === "command_center");
-    const cpuBase = state.buildings.find(b => b.team === "cpu" && b.buildingType === "command_center");
+    // Find enemy bases (Command Center, Nexus, or Hatchery)
+    const playerBase = state.buildings.find(b =>
+      b.team === "player" &&
+      (b.buildingType === "command_center" ||
+       b.buildingType === "protoss_nexus" ||
+       b.buildingType === "zerg_hatchery")
+    );
+    const cpuBase = state.buildings.find(b =>
+      b.team === "cpu" &&
+      (b.buildingType === "command_center" ||
+       b.buildingType === "protoss_nexus" ||
+       b.buildingType === "zerg_hatchery")
+    );
 
     if (!playerBase || !cpuBase) return;
 
@@ -133,7 +144,13 @@ export function useUnitMovement() {
       }
 
       // Move toward current waypoint
-      const moveSpeed = unit.stats.speed * delta;
+      let moveSpeed = unit.stats.speed * delta;
+
+      // Apply creep debuff: non-Zerg units on creep move 30% slower
+      if (state.creepTiles && unit.stats.faction !== "zerg" && hasCreepAt(state.creepTiles, unit.position)) {
+        moveSpeed *= 0.7; // 30% slower
+      }
+
       const moveX = (dx / distance) * moveSpeed;
       const moveZ = (dz / distance) * moveSpeed;
 
