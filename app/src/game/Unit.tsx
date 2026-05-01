@@ -19,34 +19,52 @@ export default function Unit({ unit }: Props) {
   const meshRef = useRef<Mesh>(null);
   const { stats } = unit;
 
-  // Render shape based on stats
+  // Render shape based on stats (75% scale)
   const renderGeometry = () => {
     switch (stats.shape) {
       case "box":
-        return <boxGeometry args={[1, 1, 1]} />;
+        return <boxGeometry args={[0.75, 0.75, 0.75]} />;
       case "sphere":
-        return <sphereGeometry args={[0.5, 16, 16]} />;
+        return <sphereGeometry args={[0.375, 16, 16]} />;
       case "cylinder":
-        return <cylinderGeometry args={[0.4, 0.4, 1.5, 16]} />;
+        return <cylinderGeometry args={[0.3, 0.3, 1.125, 16]} />;
       case "cone":
-        return <coneGeometry args={[0.4, 1, 16]} />;
+        return <coneGeometry args={[0.3, 0.75, 16]} />;
       default:
-        return <boxGeometry args={[1, 1, 1]} />;
+        return <boxGeometry args={[0.75, 0.75, 0.75]} />;
     }
   };
 
   const healthPercent = (unit.health / stats.health) * 100;
 
+  // Get unit height based on shape (75% scale)
+  const getUnitHeight = () => {
+    switch (stats.shape) {
+      case "box":
+        return 0.75;
+      case "sphere":
+        return 0.75; // diameter
+      case "cylinder":
+        return 1.125;
+      case "cone":
+        return 0.75;
+      default:
+        return 0.75;
+    }
+  };
+
+  const unitHeight = getUnitHeight();
+
   return (
     <group position={unit.position}>
-      {/* 3D Mesh */}
-      <mesh ref={meshRef} castShadow>
+      {/* 3D Mesh - lifted to sit on ground */}
+      <mesh ref={meshRef} castShadow position={[0, unitHeight / 2, 0]}>
         {renderGeometry()}
         <meshStandardMaterial color={stats.color} />
       </mesh>
 
       {/* Health bar above unit */}
-      <Html position={[0, 1.5, 0]} center style={{ pointerEvents: "none", zIndex: 10 }}>
+      <Html position={[0, unitHeight + 0.5, 0]} center style={{ pointerEvents: "none", zIndex: 10 }}>
         <div className="bg-black/50 backdrop-blur-sm rounded px-2 py-1 text-xs min-w-16">
           <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
             <div

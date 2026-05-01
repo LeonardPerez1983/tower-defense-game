@@ -8,33 +8,44 @@
 import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { GameStateProvider } from "./engine/GameStateProvider";
-import { loadConfig, loadCards, loadUnits, Card, UnitStats } from "./data/loadData";
+import { loadConfig, loadCards, loadUnits, loadBuildings, loadTechTree, Card, UnitStats, Building, TechTreeEntry } from "./data/loadData";
 import Arena from "./game/Arena";
 import HUD from "./components/HUD";
 import CardHand from "./components/CardHand";
 import SplashScreen from "./components/SplashScreen";
 import { useEnergyTimer } from "./hooks/useEnergyTimer";
 import { useCPUAI } from "./hooks/useCPUAI";
+import { useTechTreeUnlocking } from "./hooks/useTechTreeUnlocking";
 import { useGameState } from "./engine/GameState";
+import { useBuildingPlacement } from "./hooks/useBuildingPlacement";
 
 // Inner component that uses game state hooks
-function GameContent() {
+interface GameContentProps {
+  allCards: Card[];
+  techTree: TechTreeEntry[];
+}
+
+function GameContent({ allCards, techTree }: GameContentProps) {
   const { state } = useGameState();
 
   // Start energy regeneration and CPU AI
   useEnergyTimer();
   useCPUAI();
+  useTechTreeUnlocking({ allCards, techTree });
+
+  // Building placement system
+  const buildingPlacement = useBuildingPlacement();
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* LAYER 1: 3D Background (WebGL Canvas) - reserve bottom 140px for cards */}
       <Canvas
-        camera={{ position: [0, 14, 8], fov: 35 }}
+        camera={{ position: [0, 18, 14], fov: 40 }}
         className="absolute inset-x-0 top-0"
         style={{ height: 'calc(100vh - 140px)' }}
         shadows
       >
-        <Arena />
+        <Arena buildingPlacement={buildingPlacement} />
       </Canvas>
 
       {/* LAYER 2: 2D UI Overlay */}
@@ -43,7 +54,7 @@ function GameContent() {
         {state.phase === "playing" && (
           <>
             <HUD />
-            <CardHand />
+            <CardHand buildingPlacement={buildingPlacement} />
           </>
         )}
         {state.phase === "gameover" && (
@@ -53,7 +64,10 @@ function GameContent() {
                 Game Over!
               </h1>
               <p className="text-lg text-gray-700">
-                {state.playerTowerHP > 0 ? "You Won!" : "CPU Won!"}
+                {(() => {
+                  const playerCC = state.buildings.find(b => b.team === "player" && b.buildingType === "command_center");
+                  return playerCC && playerCC.health > 0 ? "You Won!" : "CPU Won!";
+                })()}
               </p>
             </div>
           </div>
@@ -68,14 +82,18 @@ export default function GameContainer() {
   const [config, setConfig] = useState<Map<string, string>>(new Map());
   const [cards, setCards] = useState<Card[]>([]);
   const [units, setUnits] = useState<UnitStats[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [techTree, setTechTree] = useState<TechTreeEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([loadConfig(), loadCards(), loadUnits()])
-      .then(([configData, cardsData, unitsData]) => {
+    Promise.all([loadConfig(), loadCards(), loadUnits(), loadBuildings(), loadTechTree()])
+      .then(([configData, cardsData, unitsData, buildingsData, techTreeData]) => {
         setConfig(configData);
         setCards(cardsData);
         setUnits(unitsData);
+        setBuildings(buildingsData);
+        setTechTree(techTreeData);
         setLoading(false);
       })
       .catch((error) => {
@@ -95,8 +113,8 @@ export default function GameContainer() {
   }
 
   return (
-    <GameStateProvider config={config} allCards={cards} allUnits={units}>
-      <GameContent />
+    <GameStateProvider config={config} allCards={cards} allUnits={units} allBuildings={buildings} techTree={techTree}>
+      <GameContent allCards={cards} techTree={techTree} />
     </GameStateProvider>
   );
 }

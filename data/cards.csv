@@ -1,7 +1,4 @@
-id,name,cost,effect_type,effect_value,unit_id,description
-warrior,Warrior,3,spawn_unit,,warrior_unit,Melee fighter - attacks up close
-archer,Archer,3,spawn_unit,,archer_unit,Ranged attacker - shoots from distance
-tank,Tank,5,spawn_unit,,tank_unit,Heavy unit - absorbs damage
-scout,Scout,2,spawn_unit,,scout_unit,Fast unit - rushes enemy
-fireball,Fireball,4,damage,50,,Deals 50 damage to area
-heal,Heal,3,heal,30,,Restores 30 HP to nearby allies
+id,name,cost,effect_type,effect_value,unit_id,building_id,card_type,faction,description
+worker,SCV,2,add_worker,,,,spell,terran,Hire worker - generates +0.2 energy/sec
+barracks,Barracks,5,spawn_building,,,,building,terran,Infantry production - unlocks Marines
+marine,Marine,1,spawn_unit,,marine_unit,,unit,terran,Basic infantry unit

@@ -6,87 +6,106 @@
 
 import { useGameState } from "../engine/GameState";
 import Unit from "./Unit";
+import Building from "./Building";
+import { useUnitMovement } from "../hooks/useUnitMovement";
+import { useUnitCombat } from "../hooks/useUnitCombat";
+import { useBuildingPlacement } from "../hooks/useBuildingPlacement";
+import BuildingPlacementController from "./BuildingPlacementController";
 
-export default function Arena() {
+interface Props {
+  buildingPlacement: ReturnType<typeof useBuildingPlacement>;
+}
+
+export default function Arena({ buildingPlacement }: Props) {
   const { state } = useGameState();
+
+  // Move units toward enemy base
+  useUnitMovement();
+
+  // Handle unit combat
+  useUnitCombat();
 
   return (
     <>
-      {/* Sky/Background color */}
-      <color attach="background" args={["#87ceeb"]} />
+      {/* Sky/Background color - dark for outside arena */}
+      <color attach="background" args={["#1a1a1a"]} />
 
       {/* Lighting setup */}
       <ambientLight intensity={0.6} />
       <directionalLight position={[10, 15, 5]} intensity={0.9} castShadow />
 
-      {/* Main grass - Player side (bottom) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 3.5]}>
-        <planeGeometry args={[10, 7]} />
+      {/* Dark border/void plane - large background */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
+        <planeGeometry args={[30, 30]} />
+        <meshStandardMaterial color="#0f0f0f" />
+      </mesh>
+
+      {/* Main grass - Player side (bottom) - Z=1 to Z=9 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 5]}>
+        <planeGeometry args={[10, 8]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
-      {/* Horizontal river across middle (left to right) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -0.5]}>
-        <planeGeometry args={[10, 3]} />
+      {/* Horizontal river across middle (left to right) - Z=-1 to Z=1 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <planeGeometry args={[10, 2]} />
         <meshStandardMaterial color="#4a9eff" />
       </mesh>
 
-      {/* Main grass - CPU side (top) - SAME SIZE as player */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -5.5]}>
-        <planeGeometry args={[10, 7]} />
+      {/* Main grass - CPU side (top) - Z=-9 to Z=-1 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -5]}>
+        <planeGeometry args={[10, 8]} />
         <meshStandardMaterial color="#7cb87c" />
       </mesh>
 
       {/* Left bridge (vertical bridge crossing horizontal river) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2.5, 0.02, -0.5]}>
-        <planeGeometry args={[2, 3]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2.5, 0.02, 0]}>
+        <planeGeometry args={[2, 2]} />
         <meshStandardMaterial color="#c8a882" />
       </mesh>
 
       {/* Right bridge (vertical bridge crossing horizontal river) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0.02, -0.5]}>
-        <planeGeometry args={[2, 3]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0.02, 0]}>
+        <planeGeometry args={[2, 2]} />
         <meshStandardMaterial color="#c8a882" />
       </mesh>
 
-      {/* Side walls - Left (tight to battlefield edge) */}
-      <mesh position={[-5.25, 0.5, -1]}>
-        <boxGeometry args={[0.5, 1, 17]} />
+      {/* Side walls - Left (encloses all green area) */}
+      <mesh position={[-5.25, 0.5, 0]}>
+        <boxGeometry args={[0.5, 1, 19]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
-      {/* Side walls - Right (tight to battlefield edge) */}
-      <mesh position={[5.25, 0.5, -1]}>
-        <boxGeometry args={[0.5, 1, 17]} />
+      {/* Side walls - Right (encloses all green area) */}
+      <mesh position={[5.25, 0.5, 0]}>
+        <boxGeometry args={[0.5, 1, 19]} />
         <meshStandardMaterial color="#8b7355" />
       </mesh>
 
-      {/* Player Tower - Center back */}
-      <mesh position={[0, 1.2, 7.5]}>
-        <cylinderGeometry args={[0.9, 0.9, 2.5, 8]} />
-        <meshStandardMaterial color={state.playerTowerHP > 0 ? "#4ade80" : "#6b7280"} />
-      </mesh>
-      {/* Player tower top */}
-      <mesh position={[0, 2.7, 7.5]}>
-        <coneGeometry args={[1.1, 1, 8]} />
-        <meshStandardMaterial color={state.playerTowerHP > 0 ? "#22c55e" : "#4b5563"} />
+      {/* Back wall - Player side (wider to overlap with side walls) */}
+      <mesh position={[0, 0.5, 9.5]}>
+        <boxGeometry args={[11, 1, 0.5]} />
+        <meshStandardMaterial color="#8b7355" />
       </mesh>
 
-      {/* CPU Tower - Center back */}
-      <mesh position={[0, 1.2, -9.5]}>
-        <cylinderGeometry args={[0.9, 0.9, 2.5, 8]} />
-        <meshStandardMaterial color={state.cpuTowerHP > 0 ? "#f87171" : "#6b7280"} />
+      {/* Back wall - CPU side (wider to overlap with side walls) */}
+      <mesh position={[0, 0.5, -9.5]}>
+        <boxGeometry args={[11, 1, 0.5]} />
+        <meshStandardMaterial color="#8b7355" />
       </mesh>
-      {/* CPU tower top */}
-      <mesh position={[0, 2.7, -9.5]}>
-        <coneGeometry args={[1.1, 1, 8]} />
-        <meshStandardMaterial color={state.cpuTowerHP > 0 ? "#ef4444" : "#4b5563"} />
-      </mesh>
+
+      {/* Render all buildings (including base Command Centers that act as towers) */}
+      {state.buildings.map((building) => (
+        <Building key={building.id} building={building} />
+      ))}
 
       {/* Render all units */}
       {state.units.map((unit) => (
         <Unit key={unit.id} unit={unit} />
       ))}
+
+      {/* Building placement ghost preview */}
+      <BuildingPlacementController placementState={buildingPlacement} />
     </>
   );
 }

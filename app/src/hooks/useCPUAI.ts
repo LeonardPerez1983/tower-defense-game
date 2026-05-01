@@ -22,9 +22,9 @@ export function useCPUAI() {
 
       // Check if CPU has enough energy
       if (state.cpuEnergy >= randomCard.cost) {
-        // Spawn at CPU's side (Z = -8, random X position)
+        // Spawn at CPU's side (Z = -4.5, front of CPU area)
         const randomX = (Math.random() - 0.5) * 4; // -2 to +2
-        actions.playCard("cpu", randomCard.id, [randomX, 0, -8]);
+        actions.playCard("cpu", randomCard.id, [randomX, 0, -4.5]);
       }
     }, 3000); // Every 3 seconds
 

@@ -1,0 +1,4 @@
+card_id,required_building,faction
+worker,command_center,terran
+barracks,command_center,terran
+marine,barracks,terran

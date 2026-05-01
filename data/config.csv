@@ -5,3 +5,5 @@ max_energy,10
 hand_size,4
 max_units_per_team,8
 tower_health,1000
+max_workers,5
+energy_per_worker,0.2

@@ -9,10 +9,20 @@ import { useGameState } from "../engine/GameState";
 export default function HUD() {
   const { state } = useGameState();
 
+  // Find Command Centers (they are the base/tower for each team)
+  const playerCC = state.buildings.find(b => b.team === "player" && b.buildingType === "command_center");
+  const cpuCC = state.buildings.find(b => b.team === "cpu" && b.buildingType === "command_center");
+
   const playerEnergyPercent = (state.playerEnergy / state.maxEnergy) * 100;
   const cpuEnergyPercent = (state.cpuEnergy / state.maxEnergy) * 100;
-  const playerTowerPercent = (state.playerTowerHP / state.towerMaxHP) * 100;
-  const cpuTowerPercent = (state.cpuTowerHP / state.towerMaxHP) * 100;
+
+  const playerBaseHP = playerCC?.health ?? 0;
+  const playerBaseMaxHP = playerCC?.stats.health ?? 1;
+  const playerBasePercent = (playerBaseHP / playerBaseMaxHP) * 100;
+
+  const cpuBaseHP = cpuCC?.health ?? 0;
+  const cpuBaseMaxHP = cpuCC?.stats.health ?? 1;
+  const cpuBasePercent = (cpuBaseHP / cpuBaseMaxHP) * 100;
 
   return (
     <div className="absolute inset-0 pointer-events-none z-40">
@@ -20,13 +30,13 @@ export default function HUD() {
       <div className="absolute top-4 left-4">
         <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md w-64">
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-semibold text-gray-700">CPU Tower</span>
-            <span className="text-gray-600">{Math.round(state.cpuTowerHP)} HP</span>
+            <span className="font-semibold text-gray-700">CPU Base</span>
+            <span className="text-gray-600">{Math.round(cpuBaseHP)} / {cpuBaseMaxHP} HP</span>
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-red-500 transition-all duration-300"
-              style={{ width: `${cpuTowerPercent}%` }}
+              style={{ width: `${cpuBasePercent}%` }}
             />
           </div>
 
@@ -40,6 +50,11 @@ export default function HUD() {
               style={{ width: `${cpuEnergyPercent}%` }}
             />
           </div>
+
+          <div className="flex items-center justify-between text-xs mt-2">
+            <span className="font-semibold text-gray-700">Workers</span>
+            <span className="text-gray-600">{state.cpuWorkerCount} / {state.maxWorkers}</span>
+          </div>
         </div>
       </div>
 
@@ -47,13 +62,13 @@ export default function HUD() {
       <div className="absolute top-4 right-4">
         <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md w-64">
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-semibold text-gray-700">Your Tower</span>
-            <span className="text-gray-600">{Math.round(state.playerTowerHP)} HP</span>
+            <span className="font-semibold text-gray-700">Your Base</span>
+            <span className="text-gray-600">{Math.round(playerBaseHP)} / {playerBaseMaxHP} HP</span>
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-500 transition-all duration-300"
-              style={{ width: `${playerTowerPercent}%` }}
+              style={{ width: `${playerBasePercent}%` }}
             />
           </div>
 
@@ -66,6 +81,11 @@ export default function HUD() {
               className="h-full bg-blue-500 transition-all duration-300"
               style={{ width: `${playerEnergyPercent}%` }}
             />
+          </div>
+
+          <div className="flex items-center justify-between text-xs mt-2">
+            <span className="font-semibold text-gray-700">Workers</span>
+            <span className="text-gray-600">{state.playerWorkerCount} / {state.maxWorkers}</span>
           </div>
         </div>
       </div>

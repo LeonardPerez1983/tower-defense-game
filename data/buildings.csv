@@ -1,0 +1,3 @@
+id,name,cost,health,shape,color,width,height,depth,description
+command_center,Command Center,400,500,box,#3b82f6,1.875,1.5,1.875,Base building - produces workers
+barracks,Barracks,5,300,box,#ef4444,1.5,1.125,1.5,Infantry production - unlocks Marines
