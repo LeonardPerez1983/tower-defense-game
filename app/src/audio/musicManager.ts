@@ -17,7 +17,7 @@ export function startBackgroundMusic(): void {
 
   try {
     // Create audio element
-    audioElement = new Audio('/audio/Hangar_Bay_Seven.mp3');
+    audioElement = new Audio('/Hangar_Bay_Seven.mp3');
     audioElement.loop = true;
 
     // Set initial volume
