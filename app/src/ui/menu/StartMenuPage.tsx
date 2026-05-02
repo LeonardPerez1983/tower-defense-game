@@ -2,11 +2,12 @@
  * StartMenuPage - Main start menu container
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StartMenuBackground from "./StartMenuBackground";
 import StartMenuCard from "./StartMenuCard";
 import StartMenuButton from "./StartMenuButton";
 import { TerranIcon, ProtossIcon, ZergIcon } from "./FactionIcons";
+import { startBackgroundMusic } from "../../audio/musicManager";
 
 type Faction = "terran" | "protoss" | "zerg";
 
@@ -17,6 +18,11 @@ interface StartMenuPageProps {
 
 export default function StartMenuPage({ onStart, version = "v0.4.0" }: StartMenuPageProps) {
   const [selectedFaction, setSelectedFaction] = useState<Faction>("terran");
+
+  // Start background music when menu appears
+  useEffect(() => {
+    startBackgroundMusic();
+  }, []);
 
   const handleStart = () => {
     if (onStart) {

@@ -6,8 +6,8 @@ firebat,Firebat,3,spawn_unit,,firebat_unit,,unit,terran,Short-range heavy infant
 bunker,Bunker,6,spawn_building,,,bunker,building,terran,Defensive turret - attacks like 2 Marines (TODO: garrison),1,false,2,8
 protoss_probe,Probe,2,add_worker,,,,spell,protoss,Hire worker - generates +0.2 energy/sec,5,true,0,2
 protoss_gateway,Gateway,5,spawn_building,,,protoss_gateway,building,protoss,Unit production - unlocks Zealots and Dragoons,1,false,2,10
-protoss_zealot,Zealot,5,spawn_unit,,zealot_unit,,unit,protoss,Powerful melee warrior with shields,1,false,1,7
-protoss_dragoon,Dragoon,4,spawn_unit,,dragoon_unit,,unit,protoss,Ranged attacker with shields,1,false,1,5
+protoss_zealot,Zealot,3,spawn_unit,,zealot_unit,,unit,protoss,Powerful melee warrior with shields,1,false,1,7
+protoss_dragoon,Dragoon,5,spawn_unit,,dragoon_unit,,unit,protoss,Ranged attacker with shields,1,false,1,5
 protoss_cannon,Photon Cannon,5,spawn_building,,,protoss_cannon,building,protoss,Static defense - attacks enemies automatically,1,false,2,8
 zerg_drone,Drone,2,add_worker,,,,spell,zerg,Hire worker - generates +0.2 energy/sec,5,true,0,2
 creep_colony,Creep Colony,2,spawn_building,,,creep_colony,building,zerg,Expands creep - can upgrade to Sunken Colony,1,false,2,6

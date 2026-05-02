@@ -24,6 +24,7 @@ export type BuildingId =
   | "terran_bunker"
   | "zerg_hatchery"
   | "zerg_spawning_pool"
+  | "zerg_hydralisk_den"
   | "zerg_creep_colony"
   | "zerg_sunken_colony"
   | "protoss_nexus"
@@ -212,6 +213,17 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     canAttack: false,
     shouldSpawnCreep: true,
     creepRadius: 1.32, // Increased by 1.2x from 1.1
+  },
+  zerg_hydralisk_den: {
+    model: "ZergHydraDen",
+    faction: "zerg",
+    defaultScale: 1.3,
+    radius: 1.8,
+    collisionRadius: 1.1, // Reduced from 1.8
+    height: 1.0,
+    canAttack: false,
+    shouldSpawnCreep: true,
+    creepRadius: 1.44, // Increased by 1.2x from 1.2
   },
   zerg_creep_colony: {
     model: "ZergCreepColony",

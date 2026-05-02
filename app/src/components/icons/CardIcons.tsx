@@ -280,6 +280,7 @@ export default function CardIcon({ cardId, faction, className = "" }: CardIconPr
       );
 
     case "zealot":
+    case "protoss_zealot":
       return (
         <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Protoss warrior body */}
@@ -294,6 +295,7 @@ export default function CardIcon({ cardId, faction, className = "" }: CardIconPr
       );
 
     case "dragoon":
+    case "protoss_dragoon":
       return (
         <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Four-legged walker body */}

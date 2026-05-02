@@ -26,6 +26,7 @@ export type ModelName =
   | "Hydralisk"
   | "ZergHatchery"
   | "ZergSpawningPool"
+  | "ZergHydraDen"
   | "ZergCreepColony"
   | "ZergSunkenColony"
   | "ProtossZealot"
@@ -963,6 +964,74 @@ export function ZergSpawningPool({
   );
 }
 
+export function ZergHydraDen({
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
+  teamColor = "#9b59b6",
+  isMoving = false,
+  isAttacking = false,
+}: UnitModelProps) {
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      {/* Taller organic base - spine-like structure */}
+      <mesh position={[0, 0.25, 0]}>
+        <cylinderGeometry args={[0.75, 0.85, 0.5, 12]} />
+        <meshStandardMaterial color={teamColor} flatShading />
+      </mesh>
+
+      {/* Central spine column */}
+      <mesh position={[0, 0.6, 0]}>
+        <cylinderGeometry args={[0.15, 0.2, 0.7, 8]} />
+        <meshStandardMaterial color="#7a4d7a" flatShading />
+      </mesh>
+
+      {/* Spine protrusions - more angular than spawning pool */}
+      <mesh position={[0.5, 0.4, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <coneGeometry args={[0.1, 0.5, 6]} />
+        <meshStandardMaterial color="#6a3d6a" flatShading />
+      </mesh>
+      <mesh position={[-0.5, 0.4, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <coneGeometry args={[0.1, 0.5, 6]} />
+        <meshStandardMaterial color="#6a3d6a" flatShading />
+      </mesh>
+      <mesh position={[0, 0.4, 0.5]} rotation={[Math.PI / 4, 0, 0]}>
+        <coneGeometry args={[0.1, 0.5, 6]} />
+        <meshStandardMaterial color="#6a3d6a" flatShading />
+      </mesh>
+      <mesh position={[0, 0.4, -0.5]} rotation={[-Math.PI / 4, 0, 0]}>
+        <coneGeometry args={[0.1, 0.5, 6]} />
+        <meshStandardMaterial color="#6a3d6a" flatShading />
+      </mesh>
+
+      {/* Secondary spines at different heights */}
+      <mesh position={[0.35, 0.55, 0.35]} rotation={[Math.PI / 6, 0, Math.PI / 6]}>
+        <coneGeometry args={[0.08, 0.4, 6]} />
+        <meshStandardMaterial color="#7a4d7a" flatShading />
+      </mesh>
+      <mesh position={[-0.35, 0.55, -0.35]} rotation={[-Math.PI / 6, 0, -Math.PI / 6]}>
+        <coneGeometry args={[0.08, 0.4, 6]} />
+        <meshStandardMaterial color="#7a4d7a" flatShading />
+      </mesh>
+      <mesh position={[0.35, 0.55, -0.35]} rotation={[-Math.PI / 6, 0, Math.PI / 6]}>
+        <coneGeometry args={[0.08, 0.4, 6]} />
+        <meshStandardMaterial color="#7a4d7a" flatShading />
+      </mesh>
+      <mesh position={[-0.35, 0.55, 0.35]} rotation={[Math.PI / 6, 0, -Math.PI / 6]}>
+        <coneGeometry args={[0.08, 0.4, 6]} />
+        <meshStandardMaterial color="#7a4d7a" flatShading />
+      </mesh>
+
+      {/* Purple glowing accents to distinguish from green spawning pool */}
+      <GlowSphere position={[0, 0.8, 0]} radius={0.2} color="#C084FC" intensity={2.0} />
+      <GlowSphere position={[0.4, 0.45, 0.4]} radius={0.08} color="#A855F7" intensity={1.5} />
+      <GlowSphere position={[-0.4, 0.45, -0.4]} radius={0.08} color="#A855F7" intensity={1.5} />
+      <GlowSphere position={[0.4, 0.45, -0.4]} radius={0.08} color="#A855F7" intensity={1.5} />
+      <GlowSphere position={[-0.4, 0.45, 0.4]} radius={0.08} color="#A855F7" intensity={1.5} />
+    </group>
+  );
+}
+
 export function ZergCreepColony({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
@@ -1632,6 +1701,7 @@ export function StarcraftModel({
     case "Hydralisk": return <Hydralisk {...props} />;
     case "ZergHatchery": return <ZergHatchery {...props} />;
     case "ZergSpawningPool": return <ZergSpawningPool {...props} />;
+    case "ZergHydraDen": return <ZergHydraDen {...props} />;
     case "ZergCreepColony": return <ZergCreepColony {...props} />;
     case "ZergSunkenColony": return <ZergSunkenColony {...props} />;
     case "ProtossZealot": return <ProtossZealot {...props} />;

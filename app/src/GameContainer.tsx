@@ -15,6 +15,7 @@ import CardHand from "./components/CardHand";
 import StartMenuPage from "./ui/menu/StartMenuPage";
 import GameOverOverlay from "./ui/battle/GameOverOverlay";
 import { ProductionQueueDisplay } from "./components/ProductionQueueDisplay";
+import EntityTooltip from "./components/EntityTooltip";
 import { useEnergyTimer } from "./hooks/useEnergyTimer";
 import { useCPUAI } from "./hooks/useCPUAI";
 import { useTechTreeUnlocking } from "./hooks/useTechTreeUnlocking";
@@ -54,9 +55,6 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
   const handleGameStart = async (playerFaction: "terran" | "protoss" | "zerg") => {
     // Initialize audio system (after user interaction)
     initAudio();
-
-    // Start background music
-    startBackgroundMusic();
 
     // CPU picks random faction
     const factions: ("terran" | "protoss" | "zerg")[] = ["terran", "protoss", "zerg"];
@@ -179,12 +177,53 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
           result={state.winner === "player" ? "victory" : state.winner === "cpu" ? "defeat" : "tie"}
           playerFaction={state.playerFaction}
           cpuFaction={state.cpuFaction}
+          winCondition={
+            state.winReason === "timeout"
+              ? "Battle time expired - Victory determined by performance"
+              : state.winReason === "combat"
+              ? "Enemy base destroyed"
+              : undefined
+          }
           onPlayAgain={() => window.location.reload()}
           onBackToMenu={() => {
             window.location.reload();
             // In future: actions.setPhase("splash");
           }}
         />
+      )}
+
+      {/* LAYER 4: Entity Tooltip (tap units/buildings for info) */}
+      {state.selectedEntity && state.tooltipPosition && state.phase === "playing" && !state.paused && (
+        (() => {
+          const entity = state.selectedEntity.type === "unit"
+            ? state.units.find(u => u.id === state.selectedEntity!.id)
+            : state.buildings.find(b => b.id === state.selectedEntity!.id);
+
+          if (!entity) return null;
+
+          const entityData = state.selectedEntity.type === "unit"
+            ? { type: "unit" as const, data: entity as any, stats: (entity as any).stats }
+            : { type: "building" as const, data: entity as any, stats: (entity as any).stats };
+
+          const isOwned = entityData.data.team === "player";
+
+          return (
+            <EntityTooltip
+              entity={entityData}
+              position={state.tooltipPosition}
+              onClose={() => actions.clearSelection()}
+              onDemolish={
+                state.selectedEntity.type === "building" && isOwned
+                  ? () => {
+                      actions.removeBuilding(state.selectedEntity!.id);
+                      actions.clearSelection();
+                    }
+                  : undefined
+              }
+              isOwned={isOwned}
+            />
+          );
+        })()
       )}
     </div>
   );

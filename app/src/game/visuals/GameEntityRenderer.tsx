@@ -39,9 +39,9 @@ const BUILDING_ID_MAP: Record<string, BuildingId> = {
   bunker: "terran_bunker",
   zerg_hatchery: "zerg_hatchery",
   spawning_pool: "zerg_spawning_pool",
+  hydralisk_den: "zerg_hydralisk_den",
   creep_colony: "zerg_creep_colony",
   sunken_colony: "zerg_sunken_colony",
-  hydralisk_den: "zerg_spawning_pool", // Use Spawning Pool model as placeholder
   protoss_nexus: "protoss_nexus",
   protoss_gateway: "protoss_gateway",
   protoss_cannon: "protoss_photon_cannon",
@@ -78,7 +78,7 @@ interface GameBuildingModelProps {
 }
 
 export function GameBuildingModel({ building }: GameBuildingModelProps) {
-  const { state } = useGameState();
+  const { state, actions } = useGameState();
   const stats = building.stats;
   const visualId = BUILDING_ID_MAP[building.buildingType];
 
@@ -117,8 +117,23 @@ export function GameBuildingModel({ building }: GameBuildingModelProps) {
   // Rotate to face enemy (player faces -Z, CPU faces +Z)
   const rotation: [number, number, number] = [0, building.team === "player" ? Math.PI : 0, 0];
 
+  // Handle click/tap to show tooltip
+  const handleClick = (event: any) => {
+    event.stopPropagation();
+    const rect = event.target.getBoundingClientRect?.() || { left: event.clientX, top: event.clientY };
+    actions.selectEntity(
+      { type: "building", id: building.id },
+      { x: event.clientX || rect.left, y: event.clientY || rect.top }
+    );
+  };
+
   return (
-    <group position={building.position} rotation={rotation}>
+    <group
+      position={building.position}
+      rotation={rotation}
+      onClick={handleClick}
+      onPointerDown={handleClick}
+    >
       {/* Zerg creep field */}
       {shouldSpawnCreep && visual.creepRadius && (
         <ZergCreepField
@@ -162,27 +177,12 @@ export function GameBuildingModel({ building }: GameBuildingModelProps) {
         />
       )}
 
-      {/* Worker pips for main buildings */}
-      {(building.buildingType === "command_center" ||
-        building.buildingType === "protoss_nexus" ||
-        building.buildingType === "zerg_hatchery") &&
-        !isConstructing && (
-          <WorkerPips
-            workerCount={building.team === "player" ? state.playerWorkerCount : state.cpuWorkerCount}
-            maxWorkers={5}
-            faction={visual.faction}
-            radius={visual.radius}
-            height={visual.height}
-            team={building.team}
-          />
-        )}
-
       {/* Health/Shield Badge - Important structures only (no construction progress, not paused) */}
       {!isConstructing && shouldShowHealthBadge(building.buildingType) && state.phase === "playing" && !state.paused && (
         <Html
           position={building.team === "player"
-            ? [0, -0.3, 0]  // Player: bottom of building
-            : [0, visual.height * visual.defaultScale + 0.5, 0]  // Enemy: top of building
+            ? [0, -0.8, 0]  // Player: well below building (from camera perspective)
+            : [0, visual.height * visual.defaultScale + 0.8, 0]  // Enemy: well above building (from camera perspective)
           }
           center
           style={{ pointerEvents: 'none' }}
@@ -194,6 +194,14 @@ export function GameBuildingModel({ building }: GameBuildingModelProps) {
             maxShield={stats.max_shields}
             faction={visual.faction}
             showNumber={false}
+            workerCount={
+              (building.buildingType === "command_center" ||
+               building.buildingType === "protoss_nexus" ||
+               building.buildingType === "zerg_hatchery")
+                ? (building.team === "player" ? state.playerWorkerCount : state.cpuWorkerCount)
+                : undefined
+            }
+            maxWorkers={5}
           />
         </Html>
       )}
@@ -210,6 +218,7 @@ interface GameUnitModelProps {
 }
 
 export function GameUnitModel({ unit }: GameUnitModelProps) {
+  const { actions } = useGameState();
   const stats = unit.stats;
   const visualId = UNIT_ID_MAP[unit.unitType];
 
@@ -232,8 +241,23 @@ export function GameUnitModel({ unit }: GameUnitModelProps) {
   // Rotate to face enemy (player faces -Z, CPU faces +Z)
   const rotation: [number, number, number] = [0, unit.team === "player" ? Math.PI : 0, 0];
 
+  // Handle click/tap to show tooltip
+  const handleClick = (event: any) => {
+    event.stopPropagation();
+    const rect = event.target.getBoundingClientRect?.() || { left: event.clientX, top: event.clientY };
+    actions.selectEntity(
+      { type: "unit", id: unit.id },
+      { x: event.clientX || rect.left, y: event.clientY || rect.top }
+    );
+  };
+
   return (
-    <group position={unit.position} rotation={rotation}>
+    <group
+      position={unit.position}
+      rotation={rotation}
+      onClick={handleClick}
+      onPointerDown={handleClick}
+    >
       {/* StarCraft model */}
       <StarcraftModel
         model={visual.model}

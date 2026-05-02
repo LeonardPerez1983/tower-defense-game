@@ -13,6 +13,7 @@ export function useBattleTimer() {
   useFrame(() => {
     // Don't override game over if already set by combat
     if (state.phase !== "playing") return;
+    if (state.winner !== null) return; // Already have a winner, don't override
     if (state.paused) return;
     if (!state.battleStartTime) return;
 
@@ -45,8 +46,8 @@ export function useBattleTimer() {
         }
       }
 
-      // Set winner and end game
-      actions.setWinner(winner);
+      // Set winner and end game (timeout victory)
+      actions.setWinner(winner, "timeout");
       actions.setPhase("gameover");
 
       console.log(`[Battle Timer] 3 minutes elapsed. Winner: ${winner}`);

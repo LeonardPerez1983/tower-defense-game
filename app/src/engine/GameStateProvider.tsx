@@ -18,6 +18,7 @@ import {
 import { Card, UnitStats, Building, TechTreeEntry } from "../data/loadData";
 import { playSfx } from "../audio/soundManager";
 import * as sfx from "../audio/sfx";
+import { getBuildingRadius } from "../utils/collisionUtils";
 
 interface Props {
   children: ReactNode;
@@ -593,9 +594,11 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
           if (building) {
             const unitStats = allUnits.find(u => u.id === card.unit_id);
             if (unitStats) {
-              // Spawn with more spread to prevent stacking
+              // Spawn with safe distance beyond building collision radius
+              const buildingRadius = getBuildingRadius(building);
               const angle = Math.random() * Math.PI * 2; // Random angle
-              const distance = 1.0 + Math.random() * 0.5; // 1.0-1.5 units away
+              // Spawn at: buildingRadius + 0.5 (unit clearance) + 0.3-0.8 (random spread)
+              const distance = buildingRadius + 0.5 + Math.random() * 0.5;
               const spawnPos: [number, number, number] = [
                 building.position[0] + Math.cos(angle) * distance,
                 0,
@@ -841,10 +844,27 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
       }));
     },
 
-    setWinner: (winner: "player" | "cpu" | "tie") => {
+    setWinner: (winner: "player" | "cpu" | "tie", reason: "timeout" | "combat") => {
       setState((prev) => ({
         ...prev,
         winner,
+        winReason: reason,
+      }));
+    },
+
+    selectEntity: (entity: { type: "unit"; id: string } | { type: "building"; id: string }, position: { x: number; y: number }) => {
+      setState((prev) => ({
+        ...prev,
+        selectedEntity: entity,
+        tooltipPosition: position,
+      }));
+    },
+
+    clearSelection: () => {
+      setState((prev) => ({
+        ...prev,
+        selectedEntity: null,
+        tooltipPosition: null,
       }));
     },
   }), [allCards, allUnits, allBuildings]);

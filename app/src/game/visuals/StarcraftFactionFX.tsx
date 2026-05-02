@@ -325,8 +325,8 @@ export function WorkerPips({
     if (!pipsRef.current) return
 
     const time = clock.getElapsedTime()
-    // Player pips well above ground for visibility, CPU pips above health bar
-    const baseY = team === "player" ? 0.5 : height + 1.0
+    // Player pips high above building for visibility, CPU pips above health bar
+    const baseY = team === "player" ? 2.5 : height + 1.0
     pipsRef.current.position.y = baseY + Math.sin(time * 1.5) * 0.1
   })
 
@@ -356,13 +356,13 @@ export function WorkerPips({
 
         return (
           <mesh key={index} position={pos}>
-            <sphereGeometry args={[0.08, 8, 8]} />
+            <sphereGeometry args={[0.15, 8, 8]} />
             <meshStandardMaterial
-              color={isActive ? pipColor : "#333333"}
+              color={isActive ? pipColor : "#666666"}
               emissive={isActive ? pipColor : "#000000"}
-              emissiveIntensity={isActive ? 0.8 : 0}
+              emissiveIntensity={isActive ? 1.5 : 0}
               transparent
-              opacity={isActive ? 1.0 : 0.3}
+              opacity={isActive ? 1.0 : 0.5}
             />
           </mesh>
         )

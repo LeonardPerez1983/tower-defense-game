@@ -96,6 +96,7 @@ export interface GameState {
   playerUnitsCreated: number;
   cpuUnitsCreated: number;
   winner: "player" | "cpu" | "tie" | null;
+  winReason: "timeout" | "combat" | null; // How the game ended
   playerHand: Card[];
   cpuHand: Card[];
   playerDeck: Card[];
@@ -104,6 +105,9 @@ export interface GameState {
   cpuDiscard: Card[];
   units: Unit[];
   buildings: PlacedBuilding[];
+  // UI state - tooltip
+  selectedEntity: { type: "unit"; id: string } | { type: "building"; id: string } | null;
+  tooltipPosition: { x: number; y: number } | null;
   playerWorkerCount: number;
   cpuWorkerCount: number;
   playerTowerHP: number;
@@ -177,7 +181,10 @@ export interface GameActions {
   startBattle: () => void;
   trackDamage: (attackerTeam: "player" | "cpu", damage: number, isCentralStructure: boolean) => void;
   trackUnitCreated: (team: "player" | "cpu") => void;
-  setWinner: (winner: "player" | "cpu" | "tie") => void;
+  setWinner: (winner: "player" | "cpu" | "tie", reason: "timeout" | "combat") => void;
+  // Tooltip actions
+  selectEntity: (entity: { type: "unit"; id: string } | { type: "building"; id: string }, position: { x: number; y: number }) => void;
+  clearSelection: () => void;
 }
 
 // Context
@@ -245,5 +252,8 @@ export function createInitialState(
     playerUnitsCreated: 0,
     cpuUnitsCreated: 0,
     winner: null,
+    winReason: null,
+    selectedEntity: null,
+    tooltipPosition: null,
   };
 }

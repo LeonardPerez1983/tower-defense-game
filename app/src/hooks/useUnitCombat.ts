@@ -87,6 +87,9 @@ export function useUnitCombat() {
       const enemyUnits = state.units.filter(u => u.team !== unit.team);
       const enemyBuildings = state.buildings.filter(b => b.team !== unit.team);
 
+      // Get attacker's collision radius
+      const attackerRadius = getUnitRadius(unit);
+
       // Find nearest enemy within attack range
       let nearestEnemy: { type: "unit" | "building"; id: string; distance: number } | null = null;
 
@@ -94,11 +97,15 @@ export function useUnitCombat() {
       enemyUnits.forEach(enemy => {
         const dx = enemy.position[0] - unit.position[0];
         const dz = enemy.position[2] - unit.position[2];
-        const distance = Math.sqrt(dx * dx + dz * dz);
+        const centerDistance = Math.sqrt(dx * dx + dz * dz);
 
-        if (distance <= unit.stats.attack_range) {
-          if (!nearestEnemy || distance < nearestEnemy.distance) {
-            nearestEnemy = { type: "unit", id: enemy.id, distance };
+        // For melee: account for collision radii (edge-to-edge distance)
+        const enemyRadius = getUnitRadius(enemy);
+        const effectiveDistance = centerDistance - attackerRadius - enemyRadius;
+
+        if (effectiveDistance <= unit.stats.attack_range) {
+          if (!nearestEnemy || centerDistance < nearestEnemy.distance) {
+            nearestEnemy = { type: "unit", id: enemy.id, distance: centerDistance };
           }
         }
       });
@@ -107,11 +114,15 @@ export function useUnitCombat() {
       enemyBuildings.forEach(building => {
         const dx = building.position[0] - unit.position[0];
         const dz = building.position[2] - unit.position[2];
-        const distance = Math.sqrt(dx * dx + dz * dz);
+        const centerDistance = Math.sqrt(dx * dx + dz * dz);
 
-        if (distance <= unit.stats.attack_range) {
-          if (!nearestEnemy || distance < nearestEnemy.distance) {
-            nearestEnemy = { type: "building", id: building.id, distance };
+        // For melee: account for collision radii (edge-to-edge distance)
+        const buildingRadius = getBuildingRadius(building);
+        const effectiveDistance = centerDistance - attackerRadius - buildingRadius;
+
+        if (effectiveDistance <= unit.stats.attack_range) {
+          if (!nearestEnemy || centerDistance < nearestEnemy.distance) {
+            nearestEnemy = { type: "building", id: building.id, distance: centerDistance };
           }
         }
       });
@@ -522,9 +533,9 @@ export function useUnitCombat() {
         if (building.buildingType === "command_center" ||
             building.buildingType === "zerg_hatchery" ||
             building.buildingType === "protoss_nexus") {
-          // Game over: main building destroyed
+          // Game over: main building destroyed (combat victory)
           const winner = building.team === "player" ? "cpu" : "player";
-          actions.setWinner(winner);
+          actions.setWinner(winner, "combat");
           actions.setPhase("gameover");
         } else {
           // Regular buildings: remove when destroyed
