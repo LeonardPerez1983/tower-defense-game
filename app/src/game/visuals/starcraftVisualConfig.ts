@@ -150,11 +150,13 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   attackVfx?: AttackVfxType;
   canAttack: boolean;
   upgradeFrom?: BuildingId;
+  shouldSpawnCreep?: boolean;
+  creepRadius?: number;
 }> = {
   terran_command_center: {
     model: "TerranCommandCenter",
     faction: "terran",
-    defaultScale: 4.5,
+    defaultScale: 1.0,
     radius: 2.2,
     height: 1.8,
     canAttack: false,
@@ -162,7 +164,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   terran_barracks: {
     model: "TerranBarracks",
     faction: "terran",
-    defaultScale: 3.0,
+    defaultScale: 0.8,
     radius: 1.5,
     height: 1.2,
     canAttack: false,
@@ -170,7 +172,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   terran_bunker: {
     model: "TerranBunker",
     faction: "terran",
-    defaultScale: 2.6,
+    defaultScale: 0.7,
     radius: 1.3,
     height: 0.9,
     attackVfx: "terran_bullet",
@@ -179,41 +181,49 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   zerg_hatchery: {
     model: "ZergHatchery",
     faction: "zerg",
-    defaultScale: 4.8,
+    defaultScale: 1.0,
     radius: 2.4,
     height: 1.5,
     canAttack: false,
+    shouldSpawnCreep: true,
+    creepRadius: 5.28, // radius * 2.2
   },
   zerg_spawning_pool: {
     model: "ZergSpawningPool",
     faction: "zerg",
-    defaultScale: 3.2,
+    defaultScale: 1.2,
     radius: 1.6,
     height: 0.8,
     canAttack: false,
+    shouldSpawnCreep: true,
+    creepRadius: 2.56, // radius * 1.6
   },
   zerg_creep_colony: {
     model: "ZergCreepColony",
     faction: "zerg",
-    defaultScale: 2.4,
+    defaultScale: 0.9,
     radius: 1.0,
     height: 1.2,
     canAttack: false,
+    shouldSpawnCreep: true,
+    creepRadius: 1.4, // radius * 1.4
   },
   zerg_sunken_colony: {
     model: "ZergSunkenColony",
     faction: "zerg",
-    defaultScale: 2.8,
+    defaultScale: 1.0,
     radius: 1.2,
     height: 1.4,
     attackVfx: "zerg_tentacle",
     canAttack: true,
     upgradeFrom: "zerg_creep_colony",
+    shouldSpawnCreep: true,
+    creepRadius: 1.8, // radius * 1.5
   },
   protoss_nexus: {
     model: "ProtossNexus",
     faction: "protoss",
-    defaultScale: 4.5,
+    defaultScale: 1.0,
     radius: 2.2,
     height: 2.0,
     canAttack: false,
@@ -221,7 +231,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   protoss_gateway: {
     model: "ProtossGateway",
     faction: "protoss",
-    defaultScale: 3.6,
+    defaultScale: 1.0,
     radius: 1.8,
     height: 2.2,
     canAttack: false,
@@ -229,7 +239,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   protoss_photon_cannon: {
     model: "ProtossPhotonCannon",
     faction: "protoss",
-    defaultScale: 2.4,
+    defaultScale: 0.9,
     radius: 1.0,
     height: 1.6,
     attackVfx: "protoss_cannon_bolt",

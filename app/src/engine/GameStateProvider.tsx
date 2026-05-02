@@ -69,7 +69,16 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
 
   const actions: GameActions = useMemo(() => ({
     setPhase: (phase: GamePhase) => {
-      setState((prev) => ({ ...prev, phase }));
+      setState((prev) => {
+        const newState: any = { ...prev, phase };
+
+        // Start battle timer when game starts
+        if (phase === "playing" && prev.phase !== "playing") {
+          newState.battleStartTime = performance.now();
+        }
+
+        return newState;
+      });
     },
 
     setFactions: (playerFaction: "terran" | "protoss" | "zerg", cpuFaction: "terran" | "protoss" | "zerg") => {
@@ -572,6 +581,13 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
               };
 
               newState.units = [...prev.units, newUnit];
+
+              // Track unit creation for battle timer
+              if (team === "player") {
+                newState.playerUnitsCreated = prev.playerUnitsCreated + 1;
+              } else {
+                newState.cpuUnitsCreated = prev.cpuUnitsCreated + 1;
+              }
             }
           }
         } else if (card.effect_type === "spawn_building") {
@@ -694,6 +710,110 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
           buildings: newBuildings,
         };
       });
+    },
+
+    // Combat visual effects
+    spawnProjectile: (projectile) => {
+      setState((prev) => ({
+        ...prev,
+        activeProjectiles: [...prev.activeProjectiles, projectile],
+      }));
+    },
+
+    removeProjectile: (id) => {
+      setState((prev) => ({
+        ...prev,
+        activeProjectiles: prev.activeProjectiles.filter(p => p.id !== id),
+      }));
+    },
+
+    spawnMuzzleFlash: (flash) => {
+      setState((prev) => ({
+        ...prev,
+        activeMuzzleFlashes: [...prev.activeMuzzleFlashes, flash],
+      }));
+    },
+
+    removeMuzzleFlash: (id) => {
+      setState((prev) => ({
+        ...prev,
+        activeMuzzleFlashes: prev.activeMuzzleFlashes.filter(f => f.id !== id),
+      }));
+    },
+
+    spawnMeleeImpact: (impact) => {
+      setState((prev) => ({
+        ...prev,
+        activeMeleeImpacts: [...prev.activeMeleeImpacts, impact],
+      }));
+    },
+
+    removeMeleeImpact: (id) => {
+      setState((prev) => ({
+        ...prev,
+        activeMeleeImpacts: prev.activeMeleeImpacts.filter(i => i.id !== id),
+      }));
+    },
+
+    spawnDeathExplosion: (explosion) => {
+      setState((prev) => ({
+        ...prev,
+        activeDeathExplosions: [...prev.activeDeathExplosions, explosion],
+      }));
+    },
+
+    removeDeathExplosion: (id) => {
+      setState((prev) => ({
+        ...prev,
+        activeDeathExplosions: prev.activeDeathExplosions.filter(e => e.id !== id),
+      }));
+    },
+
+    // Battle timer tracking
+    startBattle: () => {
+      setState((prev) => ({
+        ...prev,
+        battleStartTime: performance.now(),
+      }));
+    },
+
+    trackDamage: (attackerTeam: "player" | "cpu", damage: number, isCentralStructure: boolean) => {
+      setState((prev) => {
+        const newState = { ...prev };
+
+        // Track total damage dealt
+        if (attackerTeam === "player") {
+          newState.playerTotalDamageDealt = prev.playerTotalDamageDealt + damage;
+        } else {
+          newState.cpuTotalDamageDealt = prev.cpuTotalDamageDealt + damage;
+        }
+
+        // Track central structure damage
+        if (isCentralStructure) {
+          if (attackerTeam === "player") {
+            newState.cpuCentralStructureDamageTaken = prev.cpuCentralStructureDamageTaken + damage;
+          } else {
+            newState.playerCentralStructureDamageTaken = prev.playerCentralStructureDamageTaken + damage;
+          }
+        }
+
+        return newState;
+      });
+    },
+
+    trackUnitCreated: (team: "player" | "cpu") => {
+      setState((prev) => ({
+        ...prev,
+        playerUnitsCreated: team === "player" ? prev.playerUnitsCreated + 1 : prev.playerUnitsCreated,
+        cpuUnitsCreated: team === "cpu" ? prev.cpuUnitsCreated + 1 : prev.cpuUnitsCreated,
+      }));
+    },
+
+    setWinner: (winner: "player" | "cpu" | "tie") => {
+      setState((prev) => ({
+        ...prev,
+        winner,
+      }));
     },
   }), [allCards, allUnits, allBuildings]);
 

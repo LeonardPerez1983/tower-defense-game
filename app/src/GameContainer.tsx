@@ -12,13 +12,14 @@ import { loadConfig, loadCards, loadUnits, loadBuildings, loadTechTree, Card, Un
 import Arena from "./game/Arena";
 import HUD from "./components/HUD";
 import CardHand from "./components/CardHand";
-import SplashScreen from "./components/SplashScreen";
+import StartMenuPage from "./ui/menu/StartMenuPage";
+import GameOverOverlay from "./ui/battle/GameOverOverlay";
 import { ProductionQueueDisplay } from "./components/ProductionQueueDisplay";
 import LarvaDisplay from "./components/LarvaDisplay";
 import { useEnergyTimer } from "./hooks/useEnergyTimer";
 import { useCPUAI } from "./hooks/useCPUAI";
 import { useTechTreeUnlocking } from "./hooks/useTechTreeUnlocking";
-import { useGameState } from "./engine/GameState";
+import { useGameState, PlacedBuilding } from "./engine/GameState";
 import { useBuildingPlacement } from "./hooks/useBuildingPlacement";
 
 // Inner component that uses game state hooks
@@ -29,7 +30,7 @@ interface GameContentProps {
 }
 
 function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
-  const { state } = useGameState();
+  const { state, actions } = useGameState();
 
   // Start energy regeneration and CPU AI
   useEnergyTimer();
@@ -39,45 +40,132 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
   // Building placement system
   const buildingPlacement = useBuildingPlacement();
 
+  // Handle game initialization from start menu
+  const handleGameStart = async (playerFaction: "terran" | "protoss" | "zerg") => {
+    // CPU picks random faction
+    const factions: ("terran" | "protoss" | "zerg")[] = ["terran", "protoss", "zerg"];
+    const cpuFaction = factions[Math.floor(Math.random() * factions.length)];
+
+    // Set factions
+    actions.setFactions(playerFaction, cpuFaction);
+
+    // Place starting base buildings for both teams
+    const getBaseId = (faction: "terran" | "protoss" | "zerg") => {
+      if (faction === "terran") return "command_center";
+      if (faction === "protoss") return "protoss_nexus";
+      return "zerg_hatchery";
+    };
+
+    const playerBaseId = getBaseId(playerFaction);
+    const cpuBaseId = getBaseId(cpuFaction);
+
+    const playerBaseStats = allBuildings.find(b => b.id === playerBaseId);
+    const cpuBaseStats = allBuildings.find(b => b.id === cpuBaseId);
+
+    if (playerBaseStats) {
+      const playerBase: PlacedBuilding = {
+        id: `player-base-start`,
+        buildingType: playerBaseId,
+        team: "player",
+        position: [0, 0, 6],
+        health: playerBaseStats.health,
+        shields: playerBaseStats.max_shields,
+        stats: playerBaseStats,
+      };
+      actions.placeBuilding(playerBase);
+    }
+
+    if (cpuBaseStats) {
+      const cpuBase: PlacedBuilding = {
+        id: `cpu-base-start`,
+        buildingType: cpuBaseId,
+        team: "cpu",
+        position: [0, 0, -6],
+        health: cpuBaseStats.health,
+        shields: cpuBaseStats.max_shields,
+        stats: cpuBaseStats,
+      };
+      actions.placeBuilding(cpuBase);
+    }
+
+    // Initialize larva for Zerg Hatcheries
+    if (playerFaction === "zerg") {
+      actions.addLarva(`player-base-start`);
+      actions.addLarva(`player-base-start`);
+      actions.addLarva(`player-base-start`);
+    }
+    if (cpuFaction === "zerg") {
+      actions.addLarva(`cpu-base-start`);
+      actions.addLarva(`cpu-base-start`);
+      actions.addLarva(`cpu-base-start`);
+    }
+
+    // Initialize starting deck: 5 worker cards
+    const getWorkerCardId = (faction: "terran" | "protoss" | "zerg") => {
+      if (faction === "terran") return "worker";
+      if (faction === "protoss") return "protoss_probe";
+      return "zerg_drone";
+    };
+
+    const playerWorkerCardId = getWorkerCardId(playerFaction);
+    const cpuWorkerCardId = getWorkerCardId(cpuFaction);
+
+    const playerWorkerCard = allCards.find(c => c.id === playerWorkerCardId);
+    const cpuWorkerCard = allCards.find(c => c.id === cpuWorkerCardId);
+
+    const playerStartingCards = playerWorkerCard
+      ? [playerWorkerCard, playerWorkerCard, playerWorkerCard, playerWorkerCard, playerWorkerCard]
+      : [];
+    const cpuStartingCards = cpuWorkerCard
+      ? [cpuWorkerCard, cpuWorkerCard, cpuWorkerCard, cpuWorkerCard, cpuWorkerCard]
+      : [];
+
+    actions.initializeDeck("player", playerStartingCards);
+    actions.initializeDeck("cpu", cpuStartingCards);
+
+    actions.setPhase("playing");
+  };
+
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* LAYER 1: 3D Background (WebGL Canvas) - reserve bottom 140px for cards */}
-      <Canvas
-        camera={{ position: [0, 18, 14], fov: 40 }}
-        className="absolute inset-x-0 top-0"
-        style={{ height: 'calc(100vh - 140px)' }}
-        shadows
-      >
-        <Arena buildingPlacement={buildingPlacement} />
-      </Canvas>
+      {/* LAYER 1: 3D Background (WebGL Canvas) - only render when playing */}
+      {state.phase === "playing" && (
+        <Canvas
+          camera={{ position: [0, 18, 14], fov: 40 }}
+          className="absolute inset-x-0 top-0"
+          style={{ height: 'calc(100vh - 140px)' }}
+          shadows
+        >
+          <Arena buildingPlacement={buildingPlacement} />
+        </Canvas>
+      )}
 
       {/* LAYER 2: 2D UI Overlay */}
-      <div className="absolute inset-0 pointer-events-none">
-        {state.phase === "splash" && <SplashScreen />}
-        {state.phase === "playing" && (
-          <>
-            <HUD />
-            <ProductionQueueDisplay />
-            <LarvaDisplay />
-            <CardHand buildingPlacement={buildingPlacement} techTree={techTree} />
-          </>
-        )}
-        {state.phase === "gameover" && (
-          <div className="flex items-center justify-center h-full">
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl pointer-events-auto">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Game Over!
-              </h1>
-              <p className="text-lg text-gray-700">
-                {(() => {
-                  const playerCC = state.buildings.find(b => b.team === "player" && b.buildingType === "command_center");
-                  return playerCC && playerCC.health > 0 ? "You Won!" : "CPU Won!";
-                })()}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      {state.phase === "splash" && (
+        <StartMenuPage onStart={handleGameStart} />
+      )}
+
+      {state.phase === "playing" && (
+        <div className="absolute inset-0 pointer-events-none">
+          <HUD />
+          <ProductionQueueDisplay />
+          <LarvaDisplay />
+          <CardHand buildingPlacement={buildingPlacement} techTree={techTree} />
+        </div>
+      )}
+
+      {state.phase === "gameover" && (
+        <GameOverOverlay
+          result={state.winner === "player" ? "victory" : state.winner === "cpu" ? "defeat" : "tie"}
+          playerFaction={state.playerFaction}
+          cpuFaction={state.cpuFaction}
+          onPlayAgain={() => window.location.reload()}
+          onBackToMenu={() => {
+            window.location.reload();
+            // In future: actions.setPhase("splash");
+          }}
+        />
+      )}
     </div>
   );
 }

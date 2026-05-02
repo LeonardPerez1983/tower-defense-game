@@ -11,6 +11,37 @@ import { Card, UnitStats, Building as BuildingStats } from "../data/loadData";
 // Game phases
 export type GamePhase = "splash" | "playing" | "gameover";
 
+// Combat visual effects
+export interface CombatProjectile {
+  id: string;
+  startPos: [number, number, number];
+  endPos: [number, number, number];
+  vfxType: string;
+  startTime: number;
+  duration: number;
+}
+
+export interface CombatMuzzleFlash {
+  id: string;
+  position: [number, number, number];
+  vfxType: string;
+  startTime: number;
+}
+
+export interface CombatMeleeImpact {
+  id: string;
+  position: [number, number, number];
+  startTime: number;
+}
+
+export interface DeathExplosion {
+  id: string;
+  position: [number, number, number];
+  size: number;
+  color: string;
+  startTime: number;
+}
+
 // Production queue entry
 export interface ProductionQueueEntry {
   cardId: string;
@@ -55,6 +86,15 @@ export interface GameState {
   cpuFaction: "terran" | "protoss" | "zerg";
   playerEnergy: number;
   cpuEnergy: number;
+  // Battle timer (3 minutes max)
+  battleStartTime: number | null;
+  playerCentralStructureDamageTaken: number;
+  cpuCentralStructureDamageTaken: number;
+  playerTotalDamageDealt: number;
+  cpuTotalDamageDealt: number;
+  playerUnitsCreated: number;
+  cpuUnitsCreated: number;
+  winner: "player" | "cpu" | "tie" | null;
   playerHand: Card[];
   cpuHand: Card[];
   playerDeck: Card[];
@@ -80,6 +120,11 @@ export interface GameState {
   creepTiles: Set<string>; // Set of "x,z" coordinates with creep
   // Zerg larva system
   larvaCount: Map<string, number>; // Map of Hatchery building ID -> larva count (max 3 per Hatchery)
+  // Combat visual effects
+  activeProjectiles: CombatProjectile[];
+  activeMuzzleFlashes: CombatMuzzleFlash[];
+  activeMeleeImpacts: CombatMeleeImpact[];
+  activeDeathExplosions: DeathExplosion[];
 }
 
 // Actions to modify state
@@ -117,6 +162,20 @@ export interface GameActions {
   consumeLarva: (buildingId: string) => boolean;
   // Building upgrade actions
   upgradeBuilding: (buildingId: string, newBuildingType: string) => void;
+  // Combat visual effects actions
+  spawnProjectile: (projectile: CombatProjectile) => void;
+  removeProjectile: (id: string) => void;
+  spawnMuzzleFlash: (flash: CombatMuzzleFlash) => void;
+  removeMuzzleFlash: (id: string) => void;
+  spawnMeleeImpact: (impact: CombatMeleeImpact) => void;
+  removeMeleeImpact: (id: string) => void;
+  spawnDeathExplosion: (explosion: DeathExplosion) => void;
+  removeDeathExplosion: (id: string) => void;
+  // Battle timer tracking actions
+  startBattle: () => void;
+  trackDamage: (attackerTeam: "player" | "cpu", damage: number, isCentralStructure: boolean) => void;
+  trackUnitCreated: (team: "player" | "cpu") => void;
+  setWinner: (winner: "player" | "cpu" | "tie") => void;
 }
 
 // Context
@@ -171,5 +230,17 @@ export function createInitialState(
     cpuProductionQueue: [],
     creepTiles: new Set<string>(),
     larvaCount: new Map<string, number>(),
+    activeProjectiles: [],
+    activeMuzzleFlashes: [],
+    activeMeleeImpacts: [],
+    activeDeathExplosions: [],
+    battleStartTime: null,
+    playerCentralStructureDamageTaken: 0,
+    cpuCentralStructureDamageTaken: 0,
+    playerTotalDamageDealt: 0,
+    cpuTotalDamageDealt: 0,
+    playerUnitsCreated: 0,
+    cpuUnitsCreated: 0,
+    winner: null,
   };
 }

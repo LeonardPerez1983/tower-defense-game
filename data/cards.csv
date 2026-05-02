@@ -1,7 +1,9 @@
 id,name,cost,effect_type,effect_value,unit_id,building_id,card_type,faction,description,max_copies,is_permanent_removal,discard_cost,build_time
 worker,SCV,2,add_worker,,,,spell,terran,Hire worker - generates +0.2 energy/sec,5,true,0,2
-barracks,Barracks,5,spawn_building,,,,building,terran,Infantry production - unlocks Marines,1,false,2,10
+barracks,Barracks,5,spawn_building,,,barracks,building,terran,Infantry production - unlocks Marines,1,false,2,10
 marine,Marine,2,spawn_unit,,marine_unit,,unit,terran,Basic infantry unit,1,false,1,3
+firebat,Firebat,3,spawn_unit,,firebat_unit,,unit,terran,Short-range heavy infantry,1,false,1,4
+bunker,Bunker,6,spawn_building,,,bunker,building,terran,Defensive turret - attacks like 2 Marines (TODO: garrison),1,false,2,8
 protoss_probe,Probe,2,add_worker,,,,spell,protoss,Hire worker - generates +0.2 energy/sec,5,true,0,2
 protoss_gateway,Gateway,5,spawn_building,,,protoss_gateway,building,protoss,Unit production - unlocks Zealots and Dragoons,1,false,2,10
 protoss_zealot,Zealot,5,spawn_unit,,zealot_unit,,unit,protoss,Powerful melee warrior with shields,1,false,1,7

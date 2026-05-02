@@ -5,9 +5,31 @@
  */
 
 import { useGameState } from "../engine/GameState";
+import { useState, useEffect } from "react";
+
+const BATTLE_DURATION_MS = 3 * 60 * 1000; // 3 minutes
 
 export default function HUD() {
   const { state } = useGameState();
+  const [remainingTime, setRemainingTime] = useState(BATTLE_DURATION_MS);
+
+  // Update countdown timer using requestAnimationFrame
+  useEffect(() => {
+    if (state.phase !== "playing" || !state.battleStartTime) {
+      return;
+    }
+
+    let frameId: number;
+    const updateTimer = () => {
+      const elapsed = performance.now() - state.battleStartTime!;
+      const remaining = Math.max(0, BATTLE_DURATION_MS - elapsed);
+      setRemainingTime(remaining);
+      frameId = requestAnimationFrame(updateTimer);
+    };
+
+    frameId = requestAnimationFrame(updateTimer);
+    return () => cancelAnimationFrame(frameId);
+  }, [state.phase, state.battleStartTime]);
 
   // Find Command Centers (they are the base/tower for each team)
   const playerCC = state.buildings.find(b => b.team === "player" && b.buildingType === "command_center");
@@ -35,6 +57,20 @@ export default function HUD() {
           🎨 Model Viewer
         </a>
       </div>
+
+      {/* Battle Timer */}
+      {state.phase === "playing" && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2">
+          <div className="bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+            <div className="text-center">
+              <div className="text-xs text-gray-400 mb-1">Time Remaining</div>
+              <div className="text-2xl font-bold text-white tabular-nums">
+                {Math.floor(remainingTime / 60000)}:{String(Math.floor((remainingTime % 60000) / 1000)).padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CPU Stats (Top-Left) */}
       <div className="absolute top-4 left-4">

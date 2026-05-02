@@ -8,6 +8,40 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { useGameState } from "../engine/GameState";
+import { getUnitVisual, getBuildingVisual, UnitId, BuildingId } from "../game/visuals/starcraftVisualConfig";
+
+// Helper to map unit type to visual ID
+const UNIT_ID_MAP: Record<string, UnitId> = {
+  marine_unit: "terran_marine",
+  firebat_unit: "terran_firebat",
+  larva_unit: "zerg_larva",
+  cocoon_unit: "zerg_cocoon",
+  zergling_unit: "zerg_zergling",
+  hydralisk_unit: "zerg_hydralisk",
+  zealot_unit: "protoss_zealot",
+  dragoon_unit: "protoss_dragoon",
+};
+
+const BUILDING_ID_MAP: Record<string, BuildingId> = {
+  command_center: "terran_command_center",
+  barracks: "terran_barracks",
+  bunker: "terran_bunker",
+  zerg_hatchery: "zerg_hatchery",
+  spawning_pool: "zerg_spawning_pool",
+  creep_colony: "zerg_creep_colony",
+  sunken_colony: "zerg_sunken_colony",
+  protoss_nexus: "protoss_nexus",
+  protoss_gateway: "protoss_gateway",
+  protoss_cannon: "protoss_photon_cannon",
+};
+
+function getUnitVisualId(unitType: string): UnitId | null {
+  return UNIT_ID_MAP[unitType] || null;
+}
+
+function getBuildingVisualId(buildingType: string): BuildingId | null {
+  return BUILDING_ID_MAP[buildingType] || null;
+}
 
 export function useUnitCombat() {
   const { state, actions } = useGameState();
@@ -62,11 +96,183 @@ export function useUnitCombat() {
         if (currentTime - lastAttack >= attackCooldown) {
           lastAttackTime.current.set(unit.id, currentTime);
 
-          // Deal damage
+          // Get target position
+          let targetPos: [number, number, number] = [0, 0, 0];
+          if (nearestEnemy.type === "unit") {
+            const target = enemyUnits.find(u => u.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          }
+
+          // Get unit visual config for attack VFX
+          const unitVisualId = getUnitVisualId(unit.unitType);
+          const unitVisual = unitVisualId ? getUnitVisual(unitVisualId) : null;
+
+          // Spawn visual effects
+          if (unitVisual?.attackVfx) {
+            const isRanged = unit.stats.attack_range > 1.5;
+
+            if (isRanged) {
+              // Spawn projectile
+              actions.spawnProjectile({
+                id: `proj-${unit.id}-${currentTime}`,
+                startPos: [unit.position[0], unit.position[1] + 0.5, unit.position[2]],
+                endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
+                vfxType: unitVisual.attackVfx,
+                startTime: currentTime,
+                duration: 300, // ms
+              });
+
+              // Spawn muzzle flash
+              actions.spawnMuzzleFlash({
+                id: `flash-${unit.id}-${currentTime}`,
+                position: [unit.position[0], unit.position[1] + 0.5, unit.position[2]],
+                vfxType: unitVisual.attackVfx,
+                startTime: currentTime,
+              });
+            } else {
+              // Spawn melee impact
+              actions.spawnMeleeImpact({
+                id: `impact-${unit.id}-${currentTime}`,
+                position: [targetPos[0], targetPos[1] + 0.3, targetPos[2]],
+                startTime: currentTime,
+              });
+            }
+          }
+
+          // Deal damage and track for timer
           if (nearestEnemy.type === "unit") {
             actions.damageUnit(nearestEnemy.id, unit.stats.damage);
+            actions.trackDamage(unit.team, unit.stats.damage, false);
           } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            const isCentralStructure = target && (
+              target.buildingType === "command_center" ||
+              target.buildingType === "protoss_nexus" ||
+              target.buildingType === "zerg_hatchery"
+            );
             actions.damageBuilding(nearestEnemy.id, unit.stats.damage);
+            actions.trackDamage(unit.team, unit.stats.damage, !!isCentralStructure);
+          }
+        }
+      }
+    });
+
+    // Central structure combat (Command Center, Nexus, Hatchery defend themselves)
+    state.buildings.forEach(building => {
+      const isCentralStructure =
+        building.buildingType === "command_center" ||
+        building.buildingType === "protoss_nexus" ||
+        building.buildingType === "zerg_hatchery";
+
+      if (!isCentralStructure) return;
+
+      // Get worker count for this team
+      const workerCount = building.team === "player" ? state.playerWorkerCount : state.cpuWorkerCount;
+
+      if (workerCount === 0) return; // No workers = no defense
+
+      // Determine attack parameters based on faction
+      let attackRange = 4.0; // Default (Terran Marine range)
+      let workerDamage = 5; // Default (SCV damage)
+      let attackVfx = "terran_bullet";
+
+      const buildingVisualId = getBuildingVisualId(building.buildingType);
+      const buildingVisual = buildingVisualId ? getBuildingVisual(buildingVisualId) : null;
+
+      if (buildingVisual?.faction === "protoss") {
+        attackRange = 6.0; // Dragoon range
+        workerDamage = 3; // Probe damage
+        attackVfx = "protoss_plasma";
+      } else if (buildingVisual?.faction === "zerg") {
+        attackRange = 5.0; // Hydralisk range
+        workerDamage = 3; // Drone damage
+        attackVfx = "zerg_spine";
+      }
+
+      // Total damage = worker damage * worker count
+      const totalDamage = workerDamage * workerCount;
+
+      // Find all enemies within range
+      const enemyUnits = state.units.filter(u => u.team !== building.team);
+      const enemyBuildings = state.buildings.filter(b => b.team !== building.team);
+
+      let nearestEnemy: { type: "unit" | "building"; id: string; distance: number } | null = null;
+
+      enemyUnits.forEach(enemy => {
+        const dx = enemy.position[0] - building.position[0];
+        const dz = enemy.position[2] - building.position[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+
+        if (distance <= attackRange) {
+          if (!nearestEnemy || distance < nearestEnemy.distance) {
+            nearestEnemy = { type: "unit", id: enemy.id, distance };
+          }
+        }
+      });
+
+      enemyBuildings.forEach(enemy => {
+        const dx = enemy.position[0] - building.position[0];
+        const dz = enemy.position[2] - building.position[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+
+        if (distance <= attackRange) {
+          if (!nearestEnemy || distance < nearestEnemy.distance) {
+            nearestEnemy = { type: "building", id: enemy.id, distance };
+          }
+        }
+      });
+
+      if (nearestEnemy) {
+        const lastAttack = lastAttackTime.current.get(building.id) || 0;
+        const attackCooldown = 1500; // 1.5 seconds (slower than workers)
+
+        if (currentTime - lastAttack >= attackCooldown) {
+          lastAttackTime.current.set(building.id, currentTime);
+
+          // Get target position
+          let targetPos: [number, number, number] = [0, 0, 0];
+          if (nearestEnemy.type === "unit") {
+            const target = enemyUnits.find(u => u.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          }
+
+          // Spawn projectile
+          actions.spawnProjectile({
+            id: `proj-${building.id}-${currentTime}`,
+            startPos: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+            endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
+            vfxType: attackVfx,
+            startTime: currentTime,
+            duration: 400,
+          });
+
+          // Spawn muzzle flash
+          actions.spawnMuzzleFlash({
+            id: `flash-${building.id}-${currentTime}`,
+            position: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+            vfxType: attackVfx,
+            startTime: currentTime,
+          });
+
+          // Deal damage and track for timer
+          if (nearestEnemy.type === "unit") {
+            actions.damageUnit(nearestEnemy.id, totalDamage);
+            actions.trackDamage(building.team, totalDamage, false);
+          } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            const isCentralStructure = target && (
+              target.buildingType === "command_center" ||
+              target.buildingType === "protoss_nexus" ||
+              target.buildingType === "zerg_hatchery"
+            );
+            actions.damageBuilding(nearestEnemy.id, totalDamage);
+            actions.trackDamage(building.team, totalDamage, !!isCentralStructure);
           }
         }
       }
@@ -120,11 +326,54 @@ export function useUnitCombat() {
         if (currentTime - lastAttack >= attackCooldown) {
           lastAttackTime.current.set(building.id, currentTime);
 
-          // Deal damage
+          // Get target position
+          let targetPos: [number, number, number] = [0, 0, 0];
+          if (nearestEnemy.type === "unit") {
+            const target = enemyUnits.find(u => u.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            if (target) targetPos = target.position;
+          }
+
+          // Get building visual config for attack VFX
+          const buildingVisualId = getBuildingVisualId(building.buildingType);
+          const buildingVisual = buildingVisualId ? getBuildingVisual(buildingVisualId) : null;
+
+          // Spawn visual effects (buildings are always ranged)
+          if (buildingVisual?.attackVfx) {
+            // Spawn projectile from building center
+            actions.spawnProjectile({
+              id: `proj-${building.id}-${currentTime}`,
+              startPos: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+              endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
+              vfxType: buildingVisual.attackVfx,
+              startTime: currentTime,
+              duration: 400, // ms
+            });
+
+            // Spawn muzzle flash
+            actions.spawnMuzzleFlash({
+              id: `flash-${building.id}-${currentTime}`,
+              position: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+              vfxType: buildingVisual.attackVfx,
+              startTime: currentTime,
+            });
+          }
+
+          // Deal damage and track for timer
           if (nearestEnemy.type === "unit") {
             actions.damageUnit(nearestEnemy.id, building.stats.attack_damage);
+            actions.trackDamage(building.team, building.stats.attack_damage, false);
           } else {
+            const target = enemyBuildings.find(b => b.id === nearestEnemy.id);
+            const isCentralStructure = target && (
+              target.buildingType === "command_center" ||
+              target.buildingType === "protoss_nexus" ||
+              target.buildingType === "zerg_hatchery"
+            );
             actions.damageBuilding(nearestEnemy.id, building.stats.attack_damage);
+            actions.trackDamage(building.team, building.stats.attack_damage, !!isCentralStructure);
           }
         }
       }
@@ -133,18 +382,55 @@ export function useUnitCombat() {
     // Clean up dead units (health <= 0)
     state.units.forEach(unit => {
       if (unit.health <= 0) {
+        // Spawn death explosion
+        const color = unit.stats.faction === "terran" ? "#ff6b6b" :
+                     unit.stats.faction === "zerg" ? "#9b59b6" :
+                     unit.stats.faction === "protoss" ? "#60a5fa" : "#ffffff";
+
+        actions.spawnDeathExplosion({
+          id: `death-${unit.id}-${Date.now()}`,
+          position: [unit.position[0], unit.position[1] + 0.3, unit.position[2]],
+          size: 0.3,
+          color,
+          startTime: performance.now(),
+        });
+
         actions.removeUnit(unit.id);
         lastAttackTime.current.delete(unit.id);
       }
     });
 
-    // Clean up destroyed buildings (health <= 0, except Command Centers/Nexus which trigger game over)
+    // Check main buildings for game over condition
     state.buildings.forEach(building => {
-      if (building.health <= 0 &&
-          building.buildingType !== "command_center" &&
-          building.buildingType !== "protoss_nexus") {
-        actions.removeBuilding(building.id);
-        lastAttackTime.current.delete(building.id); // Clean up building attack timers too
+      if (building.health <= 0) {
+        // Spawn death explosion for all buildings
+        const buildingVisualId = getBuildingVisualId(building.buildingType);
+        const buildingVisual = buildingVisualId ? getBuildingVisual(buildingVisualId) : null;
+        const color = buildingVisual?.faction === "terran" ? "#ff6b6b" :
+                     buildingVisual?.faction === "zerg" ? "#9b59b6" :
+                     buildingVisual?.faction === "protoss" ? "#60a5fa" : "#ffffff";
+
+        actions.spawnDeathExplosion({
+          id: `death-${building.id}-${Date.now()}`,
+          position: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+          size: building.stats.width / 2,
+          color,
+          startTime: performance.now(),
+        });
+
+        // Main buildings trigger game over
+        if (building.buildingType === "command_center" ||
+            building.buildingType === "zerg_hatchery" ||
+            building.buildingType === "protoss_nexus") {
+          // Game over: main building destroyed
+          const winner = building.team === "player" ? "cpu" : "player";
+          actions.setWinner(winner);
+          actions.setPhase("gameover");
+        } else {
+          // Regular buildings: remove when destroyed
+          actions.removeBuilding(building.id);
+          lastAttackTime.current.delete(building.id);
+        }
       }
     });
   });
