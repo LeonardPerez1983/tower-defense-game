@@ -1,6 +1,8 @@
 card_id,required_building,faction
 barracks,command_center,terran
 marine,barracks,terran
+firebat,barracks,terran
+bunker,barracks,terran
 protoss_gateway,protoss_nexus,protoss
 protoss_cannon,protoss_nexus,protoss
 protoss_zealot,protoss_gateway,protoss

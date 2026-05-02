@@ -1,7 +1,27 @@
 # Terran Faction Implementation Plan
 
-Status: Active
+Status: Partial - Basic units/buildings implemented, garrison system deferred
 Last updated: 2026-05-01
+
+## Current Implementation Status
+
+**✅ Completed (Phases 1-3):**
+- Firebat unit added (80 HP, 1.8 speed, 12 damage, 2.0 range)
+- Bunker building added (500 HP, cost 6 energy)
+- Tech tree: Both unlock from Barracks
+- **TEMPORARY:** Bunker attacks independently (12 damage, 4.0 range, 1.0s cooldown)
+  - Simulates 2 Marines inside
+  - Cost increased from 4 to 6 energy to compensate
+
+**⏸️ Deferred (Phases 4-9):**
+- Garrison mechanics (store units inside bunker)
+- Fill mode toggle UI
+- Bunker selection panel
+- Garrisoned unit combat from inside bunker
+- Unload functionality
+- Full garrison system (~9 hours of work)
+
+**TODO:** Revisit garrison system implementation when time permits. See Phases 4-9 below for full design.
 
 ## Problem
 

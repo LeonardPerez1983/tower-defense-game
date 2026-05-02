@@ -12,7 +12,7 @@ export function useProductionQueue() {
   const { state, actions } = useGameState();
 
   useFrame(() => {
-    if (state.phase !== "playing") return;
+    if (state.phase !== "playing" || state.paused) return;
 
     const now = performance.now();
 

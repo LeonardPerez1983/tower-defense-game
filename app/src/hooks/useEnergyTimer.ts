@@ -13,7 +13,7 @@ export function useEnergyTimer() {
   const { state, actions } = useGameState();
 
   useEffect(() => {
-    if (state.phase !== "playing") return;
+    if (state.phase !== "playing" || state.paused) return;
 
     const interval = setInterval(() => {
       // Calculate energy regen including worker bonuses

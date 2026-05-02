@@ -8,6 +8,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useGameState } from "../engine/GameState";
 import { hasCreepAt } from "./useCreepSystem";
+import { wouldCollide, findAvoidanceVector } from "../utils/collisionUtils";
 
 // Arena layout constants
 const RIVER_Z_MIN = -1;
@@ -61,7 +62,7 @@ export function useUnitMovement() {
   const { state, actions } = useGameState();
 
   useFrame((_, delta) => {
-    if (state.phase !== "playing") return;
+    if (state.phase !== "playing" || state.paused) return;
 
     // Find enemy bases (Command Center, Nexus, or Hatchery)
     const playerBase = state.buildings.find(b =>
@@ -81,6 +82,36 @@ export function useUnitMovement() {
 
     // Update each unit's position
     state.units.forEach(unit => {
+      // Apply separation force to push overlapping friendly units apart
+      let separationX = 0;
+      let separationZ = 0;
+      const separationRadius = 0.8; // Push apart if closer than this
+
+      for (const other of state.units) {
+        if (other.id === unit.id || other.team !== unit.team) continue;
+
+        const dx = unit.position[0] - other.position[0];
+        const dz = unit.position[2] - other.position[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+
+        if (distance < separationRadius && distance > 0) {
+          // Push away from other unit
+          const force = (separationRadius - distance) / separationRadius;
+          separationX += (dx / distance) * force * 0.1;
+          separationZ += (dz / distance) * force * 0.1;
+        }
+      }
+
+      // Apply separation immediately if needed
+      if (separationX !== 0 || separationZ !== 0) {
+        const newPos: [number, number, number] = [
+          unit.position[0] + separationX * delta * 2,
+          unit.position[1],
+          unit.position[2] + separationZ * delta * 2,
+        ];
+        actions.updateUnitPosition(unit.id, newPos);
+      }
+
       // Initialize waypoints if not set
       if (!unit.waypoints || unit.currentWaypointIndex === undefined) {
         const target = unit.team === "player" ? cpuBase : playerBase;
@@ -151,14 +182,41 @@ export function useUnitMovement() {
         moveSpeed *= 0.7; // 30% slower
       }
 
-      const moveX = (dx / distance) * moveSpeed;
-      const moveZ = (dz / distance) * moveSpeed;
+      let moveX = (dx / distance) * moveSpeed;
+      let moveZ = (dz / distance) * moveSpeed;
 
-      const newPosition: [number, number, number] = [
+      let newPosition: [number, number, number] = [
         unit.position[0] + moveX,
         unit.position[1],
         unit.position[2] + moveZ,
       ];
+
+      // Check for collision at new position
+      if (wouldCollide(unit, newPosition, state.units, state.buildings)) {
+        // Try to find an avoidance path
+        const avoidance = findAvoidanceVector(
+          unit,
+          dx / distance,
+          dz / distance,
+          moveSpeed,
+          state.units,
+          state.buildings
+        );
+
+        if (avoidance) {
+          // Use avoidance vector
+          moveX = avoidance.dx;
+          moveZ = avoidance.dz;
+          newPosition = [
+            unit.position[0] + moveX,
+            unit.position[1],
+            unit.position[2] + moveZ,
+          ];
+        } else {
+          // Can't avoid, don't move this frame
+          return;
+        }
+      }
 
       actions.updateUnitPosition(unit.id, newPosition);
     });

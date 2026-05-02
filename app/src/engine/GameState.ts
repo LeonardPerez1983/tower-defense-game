@@ -82,6 +82,7 @@ export interface PlacedBuilding {
 // Game state interface
 export interface GameState {
   phase: GamePhase;
+  paused: boolean; // Game paused (settings menu open)
   playerFaction: "terran" | "protoss" | "zerg";
   cpuFaction: "terran" | "protoss" | "zerg";
   playerEnergy: number;
@@ -130,6 +131,7 @@ export interface GameState {
 // Actions to modify state
 export interface GameActions {
   setPhase: (phase: GamePhase) => void;
+  setPaused: (paused: boolean) => void;
   setFactions: (playerFaction: "terran" | "protoss" | "zerg", cpuFaction: "terran" | "protoss" | "zerg") => void;
   addEnergy: (team: "player" | "cpu", amount: number) => void;
   spendEnergy: (team: "player" | "cpu", amount: number) => boolean;
@@ -205,6 +207,7 @@ export function createInitialState(
 
   return {
     phase: "splash",
+    paused: false,
     playerFaction: "terran", // Default, will be set by splash screen
     cpuFaction: "terran", // Default, will be set by splash screen
     playerEnergy: maxEnergy,

@@ -55,11 +55,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "terran_bullet":
         return (
           <>
-            <sphereGeometry args={[0.05, 8, 8]} />
+            <sphereGeometry args={[0.2, 8, 8]} />
             <meshStandardMaterial
               color="#ffff00"
               emissive="#ffaa00"
-              emissiveIntensity={1.0}
+              emissiveIntensity={2.0}
             />
           </>
         );
@@ -67,11 +67,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "terran_flame":
         return (
           <>
-            <sphereGeometry args={[0.12, 8, 8]} />
+            <sphereGeometry args={[0.4, 8, 8]} />
             <meshStandardMaterial
               color="#ff4400"
               emissive="#ff6600"
-              emissiveIntensity={1.5}
+              emissiveIntensity={2.5}
               transparent
               opacity={0.8}
             />
@@ -81,11 +81,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "zerg_spine":
         return (
           <>
-            <coneGeometry args={[0.04, 0.2, 6]} />
+            <coneGeometry args={[0.12, 0.6, 6]} />
             <meshStandardMaterial
               color="#8844ff"
               emissive="#aa44ff"
-              emissiveIntensity={0.8}
+              emissiveIntensity={1.5}
             />
           </>
         );
@@ -93,11 +93,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "protoss_plasma":
         return (
           <>
-            <sphereGeometry args={[0.08, 8, 8]} />
+            <sphereGeometry args={[0.3, 8, 8]} />
             <meshStandardMaterial
               color="#4a9eff"
               emissive="#60a5fa"
-              emissiveIntensity={1.2}
+              emissiveIntensity={2.0}
             />
           </>
         );
@@ -105,11 +105,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "protoss_cannon_bolt":
         return (
           <>
-            <sphereGeometry args={[0.1, 8, 8]} />
+            <sphereGeometry args={[0.35, 8, 8]} />
             <meshStandardMaterial
               color="#00ffaa"
               emissive="#00ffaa"
-              emissiveIntensity={1.5}
+              emissiveIntensity={2.5}
             />
           </>
         );
@@ -117,11 +117,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
       case "zerg_tentacle":
         return (
           <>
-            <cylinderGeometry args={[0.06, 0.06, 0.3, 8]} />
+            <cylinderGeometry args={[0.15, 0.15, 0.8, 8]} />
             <meshStandardMaterial
               color="#663399"
               emissive="#883399"
-              emissiveIntensity={0.6}
+              emissiveIntensity={1.2}
             />
           </>
         );
@@ -130,11 +130,11 @@ export function ProjectileVFX({ projectile, onComplete }: ProjectileProps) {
         // Generic projectile
         return (
           <>
-            <sphereGeometry args={[0.06, 8, 8]} />
+            <sphereGeometry args={[0.25, 8, 8]} />
             <meshStandardMaterial
               color="#ffffff"
               emissive="#ffffff"
-              emissiveIntensity={0.8}
+              emissiveIntensity={1.5}
             />
           </>
         );
@@ -206,11 +206,11 @@ export function MuzzleFlashVFX({ flash, onComplete }: MuzzleFlashProps) {
 
   return (
     <mesh ref={meshRef} position={flash.position}>
-      <sphereGeometry args={[0.15, 8, 8]} />
+      <sphereGeometry args={[0.4, 8, 8]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={2.0}
+        emissiveIntensity={3.0}
         transparent
         opacity={1}
       />
@@ -258,11 +258,11 @@ export function MeleeImpactVFX({ impact, onComplete }: MeleeImpactProps) {
 
   return (
     <mesh ref={meshRef} position={impact.position}>
-      <sphereGeometry args={[0.2, 8, 8]} />
+      <sphereGeometry args={[0.5, 8, 8]} />
       <meshStandardMaterial
         color="#ffffff"
         emissive="#ffffff"
-        emissiveIntensity={1.0}
+        emissiveIntensity={2.0}
         transparent
         opacity={1}
       />
