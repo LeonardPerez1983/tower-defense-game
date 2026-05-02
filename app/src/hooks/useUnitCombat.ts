@@ -11,6 +11,7 @@ import { useGameState } from "../engine/GameState";
 import { getUnitVisual, getBuildingVisual, UnitId, BuildingId } from "../game/visuals/starcraftVisualConfig";
 import { playSfx } from "../audio/soundManager";
 import * as sfx from "../audio/sfx";
+import { getUnitRadius, getBuildingRadius } from "../utils/collisionUtils";
 
 // Helper to map unit type to visual ID
 const UNIT_ID_MAP: Record<string, UnitId> = {

@@ -11,11 +11,22 @@ export function useBattleTimer() {
   const { state, actions } = useGameState();
 
   useFrame(() => {
-    // Don't override game over if already set by combat
+    // Don't override game over if already set
     if (state.phase !== "playing") return;
-    if (state.winner !== null) return; // Already have a winner, don't override
     if (state.paused) return;
     if (!state.battleStartTime) return;
+
+    // CRITICAL: Don't override an existing winner OR if combat just set one
+    if (state.winner !== null || state.winReason !== null) return;
+
+    // CRITICAL: Check if any main building is dead/dying (prevents timeout from overriding combat victory)
+    const mainBuildingDestroyed = state.buildings.some(b =>
+      (b.buildingType === "command_center" ||
+       b.buildingType === "zerg_hatchery" ||
+       b.buildingType === "protoss_nexus") &&
+      b.health <= 0
+    );
+    if (mainBuildingDestroyed) return; // Combat will handle game over
 
     const elapsed = performance.now() - state.battleStartTime;
 

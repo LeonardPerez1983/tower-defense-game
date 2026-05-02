@@ -21,6 +21,7 @@ import * as THREE from "three";
 import { ProjectileVFX, MuzzleFlashVFX, MeleeImpactVFX, DeathExplosionVFX } from "./visuals/CombatEffects";
 import { useBattleTimer } from "../hooks/useBattleTimer";
 import { useTexture } from "@react-three/drei";
+import StarcraftLightingRig from "./visuals/StarcraftLightingRig";
 
 interface Props {
   buildingPlacement: ReturnType<typeof useBuildingPlacement>;
@@ -123,13 +124,13 @@ export default function Arena({ buildingPlacement }: Props) {
         <pointsMaterial size={0.4} color="#ffa0c8" sizeAttenuation={true} />
       </points>
 
-      {/* Lighting setup - very bright for detail visibility */}
-      <ambientLight intensity={1.8} color="#f0f4ff" />
-      <directionalLight position={[10, 15, 5]} intensity={2.5} color="#ffffff" castShadow />
-      <directionalLight position={[-10, 10, -5]} intensity={1.2} color="#a0b8ff" />
-      <directionalLight position={[0, 12, -8]} intensity={1.0} color="#ffffff" />
-      <pointLight position={[0, 10, 5]} intensity={1.5} color="#ffffff" distance={20} />
-      <pointLight position={[0, 10, -5]} intensity={1.5} color="#ffffff" distance={20} />
+      {/* Lighting setup - improved with faction-aware accents and contact shadows */}
+      <StarcraftLightingRig
+        faction={state.playerFaction}
+        quality="medium"
+        enableShadows={true}
+        enableFactionAccent={true}
+      />
 
       {/* Deep space void - nebula-like background */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
@@ -156,30 +157,8 @@ export default function Arena({ buildingPlacement }: Props) {
         <planeGeometry args={[10, 2]} />
         <meshStandardMaterial
           color="#0a0e27"
-          emissive="#1a2555"
-          emissiveIntensity={0.6}
-        />
-      </mesh>
-
-      {/* Nebula-like glow in the gap */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2, -0.04, 0]}>
-        <planeGeometry args={[3, 1.5]} />
-        <meshStandardMaterial
-          color="#2a3a7a"
-          emissive="#4a5aff"
-          emissiveIntensity={0.4}
-          transparent
-          opacity={0.3}
-        />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2, -0.04, 0]}>
-        <planeGeometry args={[3, 1.5]} />
-        <meshStandardMaterial
-          color="#3a2a7a"
-          emissive="#7a4aff"
-          emissiveIntensity={0.4}
-          transparent
-          opacity={0.3}
+          emissive="#0f1530"
+          emissiveIntensity={0.3}
         />
       </mesh>
 
