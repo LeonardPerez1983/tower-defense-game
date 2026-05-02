@@ -100,8 +100,8 @@ export interface UnitStats {
 
 export async function loadUnits(): Promise<UnitStats[]> {
   const rows = await loadCsv("units.csv", [
-    "id", "health", "max_shields", "shield_regen_delay", "shield_regen_rate",
-    "speed", "damage", "attack_range", "shape", "color", "faction"
+    "id", "health", "speed", "damage", "attack_range", "shape", "color", "faction",
+    "max_shields", "shield_regen_delay", "shield_regen_rate"
   ]);
   return rows.map((r) => ({
     id: r.id,

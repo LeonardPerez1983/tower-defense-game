@@ -9,6 +9,8 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { useGameState } from "../engine/GameState";
 import { getUnitVisual, getBuildingVisual, UnitId, BuildingId } from "../game/visuals/starcraftVisualConfig";
+import { playSfx } from "../audio/soundManager";
+import * as sfx from "../audio/sfx";
 
 // Helper to map unit type to visual ID
 const UNIT_ID_MAP: Record<string, UnitId> = {
@@ -43,6 +45,32 @@ function getBuildingVisualId(buildingType: string): BuildingId | null {
   return BUILDING_ID_MAP[buildingType] || null;
 }
 
+// Play attack sound based on unit type (only for player team to avoid spam)
+function playAttackSound(unitType: string, team: string): void {
+  if (team !== "player") return; // Only play sounds for player units
+
+  switch (unitType) {
+    case "marine_unit":
+      playSfx(sfx.marine_shot, 0.4);
+      break;
+    case "firebat_unit":
+      playSfx(sfx.firebat_flame, 0.3);
+      break;
+    case "zergling_unit":
+      playSfx(sfx.zergling_slash, 0.4);
+      break;
+    case "hydralisk_unit":
+      playSfx(sfx.hydralisk_spine, 0.4);
+      break;
+    case "zealot_unit":
+      playSfx(sfx.zealot_slash, 0.4);
+      break;
+    case "dragoon_unit":
+      playSfx(sfx.dragoon_plasma, 0.4);
+      break;
+  }
+}
+
 export function useUnitCombat() {
   const { state, actions } = useGameState();
 
@@ -50,7 +78,7 @@ export function useUnitCombat() {
   const lastAttackTime = useRef<Map<string, number>>(new Map());
 
   useFrame((_, delta) => {
-    if (state.phase !== "playing") return;
+    if (state.phase !== "playing" || state.paused) return;
 
     const currentTime = performance.now();
 
@@ -115,32 +143,68 @@ export function useUnitCombat() {
             const isRanged = unit.stats.attack_range > 1.5;
 
             if (isRanged) {
-              // Spawn projectile
+              // Calculate weapon offset position (front of unit, weapon height)
+              const dirX = targetPos[0] - unit.position[0];
+              const dirZ = targetPos[2] - unit.position[2];
+              const dist = Math.sqrt(dirX * dirX + dirZ * dirZ);
+              const normX = dist > 0 ? dirX / dist : 0;
+              const normZ = dist > 0 ? dirZ / dist : 0;
+
+              // Offset forward from unit center
+              const forwardOffset = unitVisual.radius * 0.7;
+              const weaponHeight = unitVisual.height * 0.7; // Weapon at ~70% of unit height
+
+              const weaponPos: [number, number, number] = [
+                unit.position[0] + normX * forwardOffset,
+                unit.position[1] + weaponHeight,
+                unit.position[2] + normZ * forwardOffset
+              ];
+
+              // Spawn projectile from weapon position
               actions.spawnProjectile({
                 id: `proj-${unit.id}-${currentTime}`,
-                startPos: [unit.position[0], unit.position[1] + 0.5, unit.position[2]],
+                startPos: weaponPos,
                 endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
                 vfxType: unitVisual.attackVfx,
                 startTime: currentTime,
                 duration: 300, // ms
               });
 
-              // Spawn muzzle flash
+              // Spawn muzzle flash at weapon position
               actions.spawnMuzzleFlash({
                 id: `flash-${unit.id}-${currentTime}`,
-                position: [unit.position[0], unit.position[1] + 0.5, unit.position[2]],
+                position: weaponPos,
                 vfxType: unitVisual.attackVfx,
                 startTime: currentTime,
               });
             } else {
-              // Spawn melee impact
+              // Melee: calculate strike point (forward of unit toward target)
+              const dirX = targetPos[0] - unit.position[0];
+              const dirZ = targetPos[2] - unit.position[2];
+              const dist = Math.sqrt(dirX * dirX + dirZ * dirZ);
+              const normX = dist > 0 ? dirX / dist : 0;
+              const normZ = dist > 0 ? dirZ / dist : 0;
+
+              const strikeReach = unitVisual.radius * 1.2;
+              const strikeHeight = unitVisual.height * 0.5;
+
+              const impactPos: [number, number, number] = [
+                unit.position[0] + normX * strikeReach,
+                unit.position[1] + strikeHeight,
+                unit.position[2] + normZ * strikeReach
+              ];
+
+              // Spawn melee impact at strike point
               actions.spawnMeleeImpact({
                 id: `impact-${unit.id}-${currentTime}`,
-                position: [targetPos[0], targetPos[1] + 0.3, targetPos[2]],
+                position: impactPos,
                 startTime: currentTime,
               });
             }
           }
+
+          // Play attack sound (only for player units)
+          playAttackSound(unit.unitType, unit.team);
 
           // Deal damage and track for timer
           if (nearestEnemy.type === "unit") {
@@ -242,20 +306,40 @@ export function useUnitCombat() {
             if (target) targetPos = target.position;
           }
 
-          // Spawn projectile
+          // Calculate weapon position (top/front of building)
+          const dirX = targetPos[0] - building.position[0];
+          const dirZ = targetPos[2] - building.position[2];
+          const dist = Math.sqrt(dirX * dirX + dirZ * dirZ);
+          const normX = dist > 0 ? dirX / dist : 0;
+          const normZ = dist > 0 ? dirZ / dist : 0;
+
+          const buildingVisualId = getBuildingVisualId(building.buildingType);
+          const buildingVisual = buildingVisualId ? getBuildingVisual(buildingVisualId) : null;
+          const buildingRadius = buildingVisual?.radius || 1.0;
+
+          const forwardOffset = buildingRadius * 0.5;
+          const weaponHeight = building.stats.height * 0.8; // Weapon near top of building
+
+          const weaponPos: [number, number, number] = [
+            building.position[0] + normX * forwardOffset,
+            building.position[1] + weaponHeight,
+            building.position[2] + normZ * forwardOffset
+          ];
+
+          // Spawn projectile from weapon position
           actions.spawnProjectile({
             id: `proj-${building.id}-${currentTime}`,
-            startPos: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+            startPos: weaponPos,
             endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
             vfxType: attackVfx,
             startTime: currentTime,
             duration: 400,
           });
 
-          // Spawn muzzle flash
+          // Spawn muzzle flash at weapon position
           actions.spawnMuzzleFlash({
             id: `flash-${building.id}-${currentTime}`,
-            position: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+            position: weaponPos,
             vfxType: attackVfx,
             startTime: currentTime,
           });
@@ -342,20 +426,36 @@ export function useUnitCombat() {
 
           // Spawn visual effects (buildings are always ranged)
           if (buildingVisual?.attackVfx) {
-            // Spawn projectile from building center
+            // Calculate weapon position (top/front of defensive building)
+            const dirX = targetPos[0] - building.position[0];
+            const dirZ = targetPos[2] - building.position[2];
+            const dist = Math.sqrt(dirX * dirX + dirZ * dirZ);
+            const normX = dist > 0 ? dirX / dist : 0;
+            const normZ = dist > 0 ? dirZ / dist : 0;
+
+            const forwardOffset = buildingVisual.radius * 0.5;
+            const weaponHeight = building.stats.height * 0.8; // Turret/weapon near top
+
+            const weaponPos: [number, number, number] = [
+              building.position[0] + normX * forwardOffset,
+              building.position[1] + weaponHeight,
+              building.position[2] + normZ * forwardOffset
+            ];
+
+            // Spawn projectile from weapon position
             actions.spawnProjectile({
               id: `proj-${building.id}-${currentTime}`,
-              startPos: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+              startPos: weaponPos,
               endPos: [targetPos[0], targetPos[1] + 0.5, targetPos[2]],
               vfxType: buildingVisual.attackVfx,
               startTime: currentTime,
               duration: 400, // ms
             });
 
-            // Spawn muzzle flash
+            // Spawn muzzle flash at weapon position
             actions.spawnMuzzleFlash({
               id: `flash-${building.id}-${currentTime}`,
-              position: [building.position[0], building.position[1] + building.stats.height / 2, building.position[2]],
+              position: weaponPos,
               vfxType: buildingVisual.attackVfx,
               startTime: currentTime,
             });

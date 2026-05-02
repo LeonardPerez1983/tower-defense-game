@@ -16,6 +16,8 @@ import {
   ProductionQueueEntry,
 } from "./GameState";
 import { Card, UnitStats, Building, TechTreeEntry } from "../data/loadData";
+import { playSfx } from "../audio/soundManager";
+import * as sfx from "../audio/sfx";
 
 interface Props {
   children: ReactNode;
@@ -79,6 +81,10 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
 
         return newState;
       });
+    },
+
+    setPaused: (paused: boolean) => {
+      setState((prev) => ({ ...prev, paused }));
     },
 
     setFactions: (playerFaction: "terran" | "protoss" | "zerg", cpuFaction: "terran" | "protoss" | "zerg") => {
@@ -218,6 +224,11 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
         ...prev,
         units: [...prev.units, unit],
       }));
+
+      // Play unit spawn sound (only for player units to avoid audio spam)
+      if (unit.team === "player") {
+        playSfx(sfx.unit_spawn);
+      }
     },
 
     removeUnit: (unitId: string) => {
@@ -407,6 +418,7 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
     damageBuilding: (buildingId: string, damage: number) => {
       setState((prev) => {
         const currentTime = performance.now();
+        const targetBuilding = prev.buildings.find(b => b.id === buildingId);
 
         const updatedBuildings = prev.buildings.map((b) => {
           if (b.id !== buildingId) return b;
@@ -414,9 +426,12 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
           let remainingDamage = damage;
           let newShields = b.shields;
           let newHealth = b.health;
+          let shieldsWereDamaged = false;
+          let healthWasDamaged = false;
 
           // Shields absorb damage first
           if (newShields > 0) {
+            shieldsWereDamaged = true;
             if (remainingDamage >= newShields) {
               remainingDamage -= newShields;
               newShields = 0;
@@ -428,7 +443,21 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
 
           // Remaining damage goes to health
           if (remainingDamage > 0) {
+            healthWasDamaged = true;
             newHealth = Math.max(0, newHealth - remainingDamage);
+          }
+
+          // Play hit sounds (only for player buildings)
+          if (b.team === "player") {
+            if (shieldsWereDamaged && healthWasDamaged) {
+              // Both shields and health damaged - play shield break sound
+              playSfx(sfx.shield_hit, 0.3);
+              playSfx(sfx.structure_hit, 0.3);
+            } else if (shieldsWereDamaged) {
+              playSfx(sfx.shield_hit, 0.3);
+            } else if (healthWasDamaged) {
+              playSfx(sfx.structure_hit, 0.3);
+            }
           }
 
           return {
@@ -564,10 +593,13 @@ export function GameStateProvider({ children, config, allCards, allUnits, allBui
           if (building) {
             const unitStats = allUnits.find(u => u.id === card.unit_id);
             if (unitStats) {
+              // Spawn with more spread to prevent stacking
+              const angle = Math.random() * Math.PI * 2; // Random angle
+              const distance = 1.0 + Math.random() * 0.5; // 1.0-1.5 units away
               const spawnPos: [number, number, number] = [
-                building.position[0] + (Math.random() - 0.5) * 0.5,
+                building.position[0] + Math.cos(angle) * distance,
                 0,
-                building.position[2] + 1.0, // 1 unit in front of building
+                building.position[2] + Math.sin(angle) * distance,
               ];
 
               const newUnit: Unit = {

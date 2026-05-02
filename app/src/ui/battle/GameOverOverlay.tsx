@@ -2,8 +2,11 @@
  * GameOverOverlay - Polished full-screen game over overlay
  */
 
+import { useEffect } from "react";
 import VictoryEffect from "./VictoryEffect";
 import DefeatEffect from "./DefeatEffect";
+import { playSfx } from "../../audio/soundManager";
+import * as sfx from "../../audio/sfx";
 
 type BattleResult = "victory" | "defeat" | "tie" | null;
 type Faction = "terran" | "protoss" | "zerg";
@@ -30,8 +33,20 @@ export default function GameOverOverlay({
   const isVictory = result === "victory";
   const isTie = result === "tie";
 
+  // Play sound effect on game over
+  useEffect(() => {
+    if (isVictory) {
+      playSfx(sfx.victory);
+    } else if (!isTie) {
+      playSfx(sfx.defeat);
+    }
+  }, [isVictory, isTie]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">
+    <div className="fixed inset-0 flex items-center justify-center pointer-events-auto" style={{ zIndex: 99999 }}>
+      {/* Backdrop to cover everything */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
       {/* Effects layer */}
       {isVictory && <VictoryEffect playerFaction={playerFaction} />}
       {!isVictory && !isTie && <DefeatEffect />}

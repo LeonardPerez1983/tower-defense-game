@@ -13,6 +13,8 @@ import GhostBuilding from "./GhostBuilding";
 import { loadBuildings } from "../data/loadData";
 import { useState } from "react";
 import { Building } from "../data/loadData";
+import { playSfx } from "../audio/soundManager";
+import * as sfx from "../audio/sfx";
 
 interface Props {
   placementState: ReturnType<typeof useBuildingPlacement>;
@@ -96,6 +98,9 @@ export default function BuildingPlacementController({ placementState }: Props) {
         };
 
         actions.placeBuilding(newBuilding);
+
+        // Play building placement sound
+        playSfx(sfx.building_place);
 
         // Queue construction (use building's own ID as producer since it's constructing itself)
         actions.queueProduction("player", state.card, buildingId);

@@ -15,12 +15,13 @@ import CardHand from "./components/CardHand";
 import StartMenuPage from "./ui/menu/StartMenuPage";
 import GameOverOverlay from "./ui/battle/GameOverOverlay";
 import { ProductionQueueDisplay } from "./components/ProductionQueueDisplay";
-import LarvaDisplay from "./components/LarvaDisplay";
 import { useEnergyTimer } from "./hooks/useEnergyTimer";
 import { useCPUAI } from "./hooks/useCPUAI";
 import { useTechTreeUnlocking } from "./hooks/useTechTreeUnlocking";
 import { useGameState, PlacedBuilding } from "./engine/GameState";
 import { useBuildingPlacement } from "./hooks/useBuildingPlacement";
+import { initAudio } from "./audio/soundManager";
+import { startBackgroundMusic, pauseBackgroundMusic, resumeBackgroundMusic } from "./audio/musicManager";
 
 // Inner component that uses game state hooks
 interface GameContentProps {
@@ -40,8 +41,23 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
   // Building placement system
   const buildingPlacement = useBuildingPlacement();
 
+  // Pause/resume music when game is paused
+  useEffect(() => {
+    if (state.paused) {
+      pauseBackgroundMusic();
+    } else {
+      resumeBackgroundMusic();
+    }
+  }, [state.paused]);
+
   // Handle game initialization from start menu
   const handleGameStart = async (playerFaction: "terran" | "protoss" | "zerg") => {
+    // Initialize audio system (after user interaction)
+    initAudio();
+
+    // Start background music
+    startBackgroundMusic();
+
     // CPU picks random faction
     const factions: ("terran" | "protoss" | "zerg")[] = ["terran", "protoss", "zerg"];
     const cpuFaction = factions[Math.floor(Math.random() * factions.length)];
@@ -128,8 +144,8 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* LAYER 1: 3D Background (WebGL Canvas) - only render when playing */}
-      {state.phase === "playing" && (
+      {/* LAYER 1: 3D Background (WebGL Canvas) - render when playing or gameover */}
+      {(state.phase === "playing" || state.phase === "gameover") && (
         <Canvas
           camera={{ position: [0, 18, 14], fov: 40 }}
           className="absolute inset-x-0 top-0"
@@ -145,15 +161,19 @@ function GameContent({ allCards, allBuildings, techTree }: GameContentProps) {
         <StartMenuPage onStart={handleGameStart} />
       )}
 
-      {state.phase === "playing" && (
-        <div className="absolute inset-0 pointer-events-none">
+      {(state.phase === "playing" || state.phase === "gameover") && (
+        <>
           <HUD />
-          <ProductionQueueDisplay />
-          <LarvaDisplay />
-          <CardHand buildingPlacement={buildingPlacement} techTree={techTree} />
-        </div>
+          {!state.paused && (
+            <div className="absolute inset-0 pointer-events-none">
+              <ProductionQueueDisplay />
+              <CardHand buildingPlacement={buildingPlacement} techTree={techTree} />
+            </div>
+          )}
+        </>
       )}
 
+      {/* LAYER 3: Game Over Overlay (popup over battle) */}
       {state.phase === "gameover" && (
         <GameOverOverlay
           result={state.winner === "player" ? "victory" : state.winner === "cpu" ? "defeat" : "tie"}

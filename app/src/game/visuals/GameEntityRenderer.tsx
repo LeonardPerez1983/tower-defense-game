@@ -16,6 +16,7 @@ import {
   getFactionColor,
 } from "./starcraftVisualConfig";
 import { ZergCreepField, ProtossShieldShimmer, TerranIndustrialLights, WorkerPips } from "./StarcraftFactionFX";
+import StructureHealthBadge from "../../components/StructureHealthBadge";
 
 // ============================================================================
 // ID MAPPING - Maps game data IDs to visual IDs
@@ -40,12 +41,33 @@ const BUILDING_ID_MAP: Record<string, BuildingId> = {
   spawning_pool: "zerg_spawning_pool",
   creep_colony: "zerg_creep_colony",
   sunken_colony: "zerg_sunken_colony",
+  hydralisk_den: "zerg_spawning_pool", // Use Spawning Pool model as placeholder
   protoss_nexus: "protoss_nexus",
   protoss_gateway: "protoss_gateway",
   protoss_cannon: "protoss_photon_cannon",
 };
 
 // Zerg creep now imported from StarcraftFactionFX.tsx
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+// Determine which buildings should show HP badges
+function shouldShowHealthBadge(buildingType: string): boolean {
+  // Show HP for:
+  // - Main structures (Command Center, Nexus, Hatchery)
+  // - Defensive buildings (Bunker, Photon Cannon, Sunken Colony)
+  const importantStructures = [
+    "command_center",
+    "protoss_nexus",
+    "zerg_hatchery",
+    "bunker",
+    "protoss_cannon",
+    "sunken_colony",
+  ];
+  return importantStructures.includes(buildingType);
+}
 
 // ============================================================================
 // GAME BUILDING MODEL
@@ -61,19 +83,15 @@ export function GameBuildingModel({ building }: GameBuildingModelProps) {
   const visualId = BUILDING_ID_MAP[building.buildingType];
 
   // Debug logging
-  console.log(`[Building] type: ${building.buildingType}, visualId: ${visualId}`);
 
   // Fallback to simple geometry if visual not found
   if (!visualId) {
-    console.warn(`[Building] No visual mapping for: ${building.buildingType}, using fallback`);
     return <FallbackBuilding building={building} />;
   }
 
   const visual = getBuildingVisual(visualId);
   const teamColor = building.team === "player" ? "#4a9eff" : "#ff6b6b";
 
-  console.log(`[Building] visual:`, visual);
-  console.log(`[Building] model: ${visual.model}, scale: ${visual.defaultScale}`);
 
   // Calculate health and shield percentages
   const healthPercent = (building.health / stats.health) * 100;
@@ -155,55 +173,30 @@ export function GameBuildingModel({ building }: GameBuildingModelProps) {
             faction={visual.faction}
             radius={visual.radius}
             height={visual.height}
+            team={building.team}
           />
         )}
 
-      {/* Health/Shield/Construction Progress Bar */}
-      <Html
-        position={[0, visual.height * visual.defaultScale + 0.5, 0]}
-        center
-        style={{ zIndex: 10 }}
-      >
-        {isConstructing ? (
-          // Construction Progress
-          <div className="bg-black/70 rounded px-2 py-1 text-xs text-white whitespace-nowrap">
-            <div className="flex items-center gap-1">
-              <div className="w-16 h-1 bg-gray-600 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 transition-all"
-                  style={{ width: `${constructionProgress * 100}%` }}
-                />
-              </div>
-              <span className="text-[10px]">
-                {Math.round(constructionProgress * 100)}%
-              </span>
-            </div>
-          </div>
-        ) : (
-          // Health/Shield Bars
-          <div className="bg-black/50 rounded px-2 py-1 text-xs text-white whitespace-nowrap">
-            <div className="flex items-center gap-1">
-              <div className="w-16">
-                {hasShields && (
-                  <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-0.5">
-                    <div
-                      className="h-full bg-blue-400 transition-all"
-                      style={{ width: `${shieldPercent}%` }}
-                    />
-                  </div>
-                )}
-                <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 transition-all"
-                    style={{ width: `${healthPercent}%` }}
-                  />
-                </div>
-              </div>
-              <span className="text-[10px]">{Math.round(building.health)}</span>
-            </div>
-          </div>
-        )}
-      </Html>
+      {/* Health/Shield Badge - Important structures only (no construction progress, not paused) */}
+      {!isConstructing && shouldShowHealthBadge(building.buildingType) && state.phase === "playing" && !state.paused && (
+        <Html
+          position={building.team === "player"
+            ? [0, -0.3, 0]  // Player: bottom of building
+            : [0, visual.height * visual.defaultScale + 0.5, 0]  // Enemy: top of building
+          }
+          center
+          style={{ pointerEvents: 'none' }}
+        >
+          <StructureHealthBadge
+            hp={building.health}
+            maxHp={stats.health}
+            shield={building.shields}
+            maxShield={stats.max_shields}
+            faction={visual.faction}
+            showNumber={false}
+          />
+        </Html>
+      )}
     </group>
   );
 }
@@ -221,11 +214,9 @@ export function GameUnitModel({ unit }: GameUnitModelProps) {
   const visualId = UNIT_ID_MAP[unit.unitType];
 
   // Debug logging
-  console.log(`[Unit] type: ${unit.unitType}, visualId: ${visualId}`);
 
   // Fallback to simple geometry if visual not found
   if (!visualId) {
-    console.warn(`[Unit] No visual mapping for: ${unit.unitType}, using fallback`);
     return <FallbackUnit unit={unit} />;
   }
 
@@ -261,31 +252,7 @@ export function GameUnitModel({ unit }: GameUnitModelProps) {
         />
       )}
 
-      {/* Health/Shield bars */}
-      <Html
-        position={[0, visual.height * visual.defaultScale + 0.5, 0]}
-        center
-        style={{ pointerEvents: "none", zIndex: 10 }}
-      >
-        <div className="bg-black/50 backdrop-blur-sm rounded px-2 py-1 text-xs min-w-16">
-          {hasShields && (
-            <div className="h-1 bg-gray-700 rounded-full overflow-hidden mb-0.5">
-              <div
-                className="h-full transition-all bg-blue-400"
-                style={{ width: `${shieldPercent}%` }}
-              />
-            </div>
-          )}
-          <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all ${
-                unit.team === "player" ? "bg-green-400" : "bg-red-400"
-              }`}
-              style={{ width: `${healthPercent}%` }}
-            />
-          </div>
-        </div>
-      </Html>
+      {/* No persistent HP bars for units - cleaner battlefield */}
     </group>
   );
 }

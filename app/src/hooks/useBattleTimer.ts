@@ -11,7 +11,9 @@ export function useBattleTimer() {
   const { state, actions } = useGameState();
 
   useFrame(() => {
+    // Don't override game over if already set by combat
     if (state.phase !== "playing") return;
+    if (state.paused) return;
     if (!state.battleStartTime) return;
 
     const elapsed = performance.now() - state.battleStartTime;

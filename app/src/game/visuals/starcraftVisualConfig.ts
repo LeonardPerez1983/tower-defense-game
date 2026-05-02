@@ -51,7 +51,8 @@ export const UNIT_VISUALS: Record<UnitId, {
   model: ModelName;
   faction: Faction;
   defaultScale: number;
-  radius: number;
+  radius: number; // Visual radius (for display)
+  collisionRadius: number; // Actual collision radius (core body only)
   height: number;
   attackVfx?: AttackVfxType;
   moveStyle: MoveStyle;
@@ -62,6 +63,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "terran",
     defaultScale: 1.0,
     radius: 0.45,
+    collisionRadius: 0.15, // Half of previous 0.3
     height: 1.1,
     attackVfx: "terran_bullet",
     moveStyle: "walker",
@@ -72,6 +74,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "terran",
     defaultScale: 1.08,
     radius: 0.5,
+    collisionRadius: 0.175, // Half of previous 0.35
     height: 1.15,
     attackVfx: "terran_flame",
     moveStyle: "walker",
@@ -82,6 +85,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "zerg",
     defaultScale: 0.55,
     radius: 0.3,
+    collisionRadius: 0.1, // Half of previous 0.2
     height: 0.3,
     moveStyle: "none",
     attackStyle: "none",
@@ -91,6 +95,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "zerg",
     defaultScale: 0.7,
     radius: 0.35,
+    collisionRadius: 0.125, // Half of previous 0.25
     height: 0.5,
     moveStyle: "none",
     attackStyle: "none",
@@ -100,6 +105,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "zerg",
     defaultScale: 0.85,
     radius: 0.5,
+    collisionRadius: 0.15, // Half of previous 0.3
     height: 0.6,
     attackVfx: "zerg_slash",
     moveStyle: "crawler",
@@ -110,6 +116,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "zerg",
     defaultScale: 1.15,
     radius: 0.55,
+    collisionRadius: 0.175, // Half of previous 0.35
     height: 1.4,
     attackVfx: "zerg_spine",
     moveStyle: "slither",
@@ -120,6 +127,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "protoss",
     defaultScale: 1.1,
     radius: 0.5,
+    collisionRadius: 0.15, // Half of previous 0.3
     height: 1.3,
     attackVfx: "protoss_blade_slash",
     moveStyle: "hover",
@@ -130,6 +138,7 @@ export const UNIT_VISUALS: Record<UnitId, {
     faction: "protoss",
     defaultScale: 1.2,
     radius: 0.75,
+    collisionRadius: 0.25, // Half of previous 0.5
     height: 1.5,
     attackVfx: "protoss_plasma",
     moveStyle: "walker",
@@ -145,7 +154,8 @@ export const BUILDING_VISUALS: Record<BuildingId, {
   model: ModelName;
   faction: Faction;
   defaultScale: number;
-  radius: number;
+  radius: number; // Visual radius (for display)
+  collisionRadius: number; // Actual collision radius (smaller, core footprint only)
   height: number;
   attackVfx?: AttackVfxType;
   canAttack: boolean;
@@ -158,6 +168,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "terran",
     defaultScale: 1.0,
     radius: 2.2,
+    collisionRadius: 1.5, // Reduced from 2.2
     height: 1.8,
     canAttack: false,
   },
@@ -166,6 +177,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "terran",
     defaultScale: 0.8,
     radius: 1.5,
+    collisionRadius: 0.9, // Reduced from 1.5 (excludes lights)
     height: 1.2,
     canAttack: false,
   },
@@ -174,6 +186,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "terran",
     defaultScale: 0.7,
     radius: 1.3,
+    collisionRadius: 0.8, // Reduced from 1.3
     height: 0.9,
     attackVfx: "terran_bullet",
     canAttack: true,
@@ -183,48 +196,53 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "zerg",
     defaultScale: 1.0,
     radius: 2.4,
+    collisionRadius: 1.6, // Reduced from 2.4
     height: 1.5,
     canAttack: false,
     shouldSpawnCreep: true,
-    creepRadius: 5.28, // radius * 2.2
+    creepRadius: 2.4, // Increased by 1.2x from 2.0
   },
   zerg_spawning_pool: {
     model: "ZergSpawningPool",
     faction: "zerg",
     defaultScale: 1.2,
     radius: 1.6,
+    collisionRadius: 1.0, // Reduced from 1.6
     height: 0.8,
     canAttack: false,
     shouldSpawnCreep: true,
-    creepRadius: 2.56, // radius * 1.6
+    creepRadius: 1.32, // Increased by 1.2x from 1.1
   },
   zerg_creep_colony: {
     model: "ZergCreepColony",
     faction: "zerg",
     defaultScale: 0.9,
     radius: 1.0,
+    collisionRadius: 0.7, // Reduced from 1.0
     height: 1.2,
     canAttack: false,
     shouldSpawnCreep: true,
-    creepRadius: 1.4, // radius * 1.4
+    creepRadius: 1.44, // Increased by 1.2x from 1.2
   },
   zerg_sunken_colony: {
     model: "ZergSunkenColony",
     faction: "zerg",
     defaultScale: 1.0,
     radius: 1.2,
+    collisionRadius: 0.8, // Reduced from 1.2
     height: 1.4,
     attackVfx: "zerg_tentacle",
     canAttack: true,
     upgradeFrom: "zerg_creep_colony",
     shouldSpawnCreep: true,
-    creepRadius: 1.8, // radius * 1.5
+    creepRadius: 1.44, // Increased by 1.2x from 1.2
   },
   protoss_nexus: {
     model: "ProtossNexus",
     faction: "protoss",
     defaultScale: 1.0,
     radius: 2.2,
+    collisionRadius: 1.5, // Reduced from 2.2
     height: 2.0,
     canAttack: false,
   },
@@ -233,6 +251,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "protoss",
     defaultScale: 1.0,
     radius: 1.8,
+    collisionRadius: 1.2, // Reduced from 1.8
     height: 2.2,
     canAttack: false,
   },
@@ -241,6 +260,7 @@ export const BUILDING_VISUALS: Record<BuildingId, {
     faction: "protoss",
     defaultScale: 0.9,
     radius: 1.0,
+    collisionRadius: 0.7, // Reduced from 1.0
     height: 1.6,
     attackVfx: "protoss_cannon_bolt",
     canAttack: true,

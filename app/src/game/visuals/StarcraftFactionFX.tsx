@@ -175,7 +175,7 @@ type ProtossShieldShimmerProps = {
 }
 
 /**
- * Protoss Shield Shimmer - Animated glow around shielded units/buildings
+ * Protoss Shield Shimmer - Subtle golden glow around shielded units/buildings
  */
 export function ProtossShieldShimmer({
   radius,
@@ -190,14 +190,14 @@ export function ProtossShieldShimmer({
     if (!meshRef.current) return
 
     const time = clock.getElapsedTime()
-    const pulse = 0.5 + Math.sin(time * 2.5) * 0.15 // Gentle pulse
+    const pulse = 0.6 + Math.sin(time * 3) * 0.2 // Faster, more visible pulse
 
     // Fade out as shields deplete
-    const baseOpacity = Math.max(0.15, shieldPercent / 100 * 0.4)
+    const baseOpacity = Math.max(0.1, shieldPercent / 100 * 0.3)
 
     if (meshRef.current.material instanceof THREE.MeshStandardMaterial) {
       meshRef.current.material.opacity = baseOpacity * pulse
-      meshRef.current.material.emissiveIntensity = 0.4 + pulse * 0.3
+      meshRef.current.material.emissiveIntensity = 0.6 + pulse * 0.4
     }
   })
 
@@ -206,13 +206,13 @@ export function ProtossShieldShimmer({
 
   return (
     <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[radius * 1.2, 16, 16]} />
+      <sphereGeometry args={[radius * 1.05, 16, 16]} />
       <meshStandardMaterial
-        color="#4a9eff"
-        emissive="#60a5fa"
-        emissiveIntensity={0.5}
+        color="#fbbf24"
+        emissive="#fcd34d"
+        emissiveIntensity={0.6}
         transparent
-        opacity={0.25}
+        opacity={0.2}
         side={THREE.BackSide}
         depthWrite={false}
       />
@@ -304,6 +304,7 @@ type WorkerPipsProps = {
   faction: "terran" | "zerg" | "protoss"
   radius: number
   height: number
+  team?: "player" | "cpu"
 }
 
 /**
@@ -314,7 +315,8 @@ export function WorkerPips({
   maxWorkers,
   faction,
   radius,
-  height
+  height,
+  team = "player"
 }: WorkerPipsProps) {
   const pipsRef = useRef<THREE.Group>(null)
 
@@ -323,7 +325,9 @@ export function WorkerPips({
     if (!pipsRef.current) return
 
     const time = clock.getElapsedTime()
-    pipsRef.current.position.y = height + 0.5 + Math.sin(time * 1.5) * 0.1
+    // Player pips well above ground for visibility, CPU pips above health bar
+    const baseY = team === "player" ? 0.5 : height + 1.0
+    pipsRef.current.position.y = baseY + Math.sin(time * 1.5) * 0.1
   })
 
   // Faction colors
